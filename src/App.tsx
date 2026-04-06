@@ -3,13 +3,13 @@ import {
   Upload,
   ArrowRight,
   AlertCircle,
-  ChevronDown,
 } from "lucide-react";
 import { parsePackageJson, fetchPackageData, type PackageResult } from "./lib/analyzer-js";
 import { parseGoMod, fetchGoModuleData, type GoModuleResult } from "./lib/analyzer-go";
 import { NpmResultsTable } from "./components/NpmResultsTable";
 import { GoResultsTable } from "./components/GoResultsTable";
 import { MaintenanceLegend } from "./components/MaintenanceLegend";
+import { ReplaceabilityLegend } from "./components/ReplaceabilityLegend";
 import { Footer } from "./Footer";
 
 type Ecosystem = "npm" | "go";
@@ -25,9 +25,10 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [hasReactNative, setHasReactNative] = useState(false);
 
-  const hasResults = ecosystem === "npm" ? npmResults.length > 0 : goResults.length > 0;
+  const hasResults =
+    ecosystem === "npm" ? npmResults.length > 0 : goResults.length > 0;
 
-  const handleAnalyzeNpm = async (content: string) => {
+  const handleAnalyzeNpm = useCallback(async (content: string) => {
     const parsed = parsePackageJson(content);
     if (!parsed) {
       setError("Invalid JSON format. Please pass a valid package.json content.");
@@ -54,7 +55,9 @@ function App() {
 
     for (let i = 0; i < depEntries.length; i += batchSize) {
       const batch = depEntries.slice(i, i + batchSize);
-      const promises = batch.map(([name, version]) => fetchPackageData(name, version, isRN));
+      const promises = batch.map(([name, version]) =>
+        fetchPackageData(name, version, isRN),
+      );
       const batchResults = await Promise.all(promises);
       newResults.push(...batchResults);
       setProgress(Math.round(((i + batch.length) / depEntries.length) * 100));
@@ -62,9 +65,9 @@ function App() {
     }
 
     setIsAnalyzing(false);
-  };
+  }, []);
 
-  const handleAnalyzeGo = async (content: string) => {
+  const handleAnalyzeGo = useCallback(async (content: string) => {
     const parsed = parseGoMod(content);
     if (!parsed) {
       setError("Invalid go.mod format. Please pass a valid go.mod content.");
@@ -85,7 +88,9 @@ function App() {
 
     for (let i = 0; i < parsed.dependencies.length; i += batchSize) {
       const batch = parsed.dependencies.slice(i, i + batchSize);
-      const promises = batch.map((dep) => fetchGoModuleData(dep.path, dep.version));
+      const promises = batch.map((dep) =>
+        fetchGoModuleData(dep.path, dep.version),
+      );
       const batchResults = await Promise.all(promises);
       newResults.push(...batchResults);
       setProgress(
@@ -95,16 +100,53 @@ function App() {
     }
 
     setIsAnalyzing(false);
-  };
+  }, []);
 
-  const handleAnalyze = useCallback(async (content: string) => {
-    setError(null);
-    if (ecosystem === "npm") {
-      await handleAnalyzeNpm(content);
-    } else {
-      await handleAnalyzeGo(content);
-    }
-  }, [ecosystem]);
+  const handleAnalyze = useCallback(
+    async (content: string, explicitEcosystem?: Ecosystem) => {
+      setError(null);
+      let targetEcosystem: Ecosystem | null = explicitEcosystem || null;
+
+      if (!targetEcosystem) {
+        const trimmed = content.trim();
+        // Detect NPM
+        if (trimmed.startsWith("{")) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed.dependencies || parsed.devDependencies) {
+              targetEcosystem = "npm";
+            }
+          } catch {
+            // ignore
+          }
+        }
+        // Detect Go
+        if (!targetEcosystem) {
+          const hasModuleLine = /^\s*module\s+\S+/.test(trimmed);
+          const hasRequireLine = /^\s*require\s*\(?/.test(trimmed);
+          const hasGoDirective = /^\s*go\s+\d+\.\d+/.test(trimmed);
+          if (hasModuleLine || hasRequireLine || hasGoDirective) {
+            targetEcosystem = "go";
+          }
+        }
+      }
+
+      if (!targetEcosystem) {
+        setError(
+          "Could not detect file type. Please upload a valid package.json or go.mod.",
+        );
+        return;
+      }
+
+      setEcosystem(targetEcosystem);
+      if (targetEcosystem === "npm") {
+        await handleAnalyzeNpm(content);
+      } else {
+        await handleAnalyzeGo(content);
+      }
+    },
+    [handleAnalyzeNpm, handleAnalyzeGo],
+  );
 
   const handleReset = () => {
     setNpmResults([]);
@@ -130,13 +172,24 @@ function App() {
       e.preventDefault();
       e.stopPropagation();
       setDragActive(false);
+      setError(null);
+
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0];
+        const name = file.name.toLowerCase();
+
+        if (name !== "package.json" && name !== "go.mod") {
+          setError("Unsupported file. Please upload package.json or go.mod.");
+          return;
+        }
+
+        const explicitEco = name === "package.json" ? "npm" : "go";
+
         const reader = new FileReader();
         reader.onload = (ev) => {
           const text = ev.target?.result as string;
           setInputVal(text);
-          if (text) handleAnalyze(text);
+          if (text) handleAnalyze(text, explicitEco);
         };
         reader.readAsText(file);
       }
@@ -145,31 +198,38 @@ function App() {
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const name = file.name.toLowerCase();
+
+      if (name !== "package.json" && name !== "go.mod") {
+        setError("Unsupported file. Please upload package.json or go.mod.");
+        return;
+      }
+
+      const explicitEco = name === "package.json" ? "npm" : "go";
+
       const reader = new FileReader();
       reader.onload = (ev) => {
         const text = ev.target?.result as string;
         setInputVal(text);
-        if (text) handleAnalyze(text);
+        if (text) handleAnalyze(text, explicitEco);
       };
       reader.readAsText(file);
     }
   };
 
-  const fileAccept = ecosystem === "npm" ? ".json" : ".mod";
-  const fileName = ecosystem === "npm" ? "package.json" : "go.mod";
+  const fileAccept = ".json,.mod";
   const placeholder =
-    ecosystem === "npm"
-      ? '{"dependencies": {"react": "^18.2.0"}}'
-      : 'module github.com/user/project\n\ngo 1.21\n\nrequire (\n    github.com/gin-gonic/gin v1.9.1\n)';
+    'Paste package.json or go.mod content here...\n\ne.g. {"dependencies": {"react": "^18.2.0"}}\n\nOR\n\nrequire github.com/gin-gonic/gin v1.9.1';
 
   return (
     <div className="app-container">
       <div className="glass-panel">
         {!hasResults && !isAnalyzing ? (
           <>
-            <h1 className="title">Hakan's Dependency Analyzer</h1>
+            <h1 className="title">Dependency Analyzer</h1>
             <h2
               className="subtitle"
               style={{
@@ -207,27 +267,9 @@ function App() {
               </a>
             </h2>
             <p className="subtitle">
-              Upload or paste your dependency file to get rich insights
+              Upload your <strong>package.json</strong> or{" "}
+              <strong>go.mod</strong> file
             </p>
-
-            {/* Ecosystem Selector */}
-            <div className="ecosystem-selector">
-              <label className="ecosystem-label">Select Ecosystem</label>
-              <div className="custom-select-wrapper">
-                <select
-                  className="ecosystem-dropdown"
-                  value={ecosystem}
-                  onChange={(e) => {
-                    setEcosystem(e.target.value as Ecosystem);
-                    setInputVal("");
-                    setError(null);
-                  }}>
-                  <option value="npm">JavaScript (package.json)</option>
-                  <option value="go">Go (go.mod)</option>
-                </select>
-                <ChevronDown size={18} className="select-icon" />
-              </div>
-            </div>
 
             <label
               className={`upload-area ${dragActive ? "drag-active" : ""}`}
@@ -236,7 +278,11 @@ function App() {
               onDragOver={onDrag}
               onDrop={onDrop}>
               <Upload className="upload-icon" />
-              <div className="upload-text">Drag & Drop <strong>{fileName}</strong> here</div>
+              <div className="upload-text">
+                Drag & Drop <strong>package.json</strong> or{" "}
+                <strong>go.mod</strong> here
+              </div>
+
               <div className="upload-hint">or click to browse files</div>
               <input
                 type="file"
@@ -312,6 +358,7 @@ function App() {
       </div>
 
       <MaintenanceLegend />
+      <ReplaceabilityLegend />
 
       <Footer />
     </div>

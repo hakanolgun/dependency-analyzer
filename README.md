@@ -1,73 +1,117 @@
-# React + TypeScript + Vite
+# 🛡️ Dependency Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Dependency-Analyzer** is a powerful dependency analysis tool designed to evaluate the "Replaceability" of your project's dependencies. It doesn't just list your packages; it deep-dives into their source code and metadata to calculate exactly how much effort would be required to replace them.
 
-Currently, two official plugins are available:
+Available as both a **high-performance Go CLI** and a **modern React Web Interface**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Key Pillars of Replaceability
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Dep-Scan evaluates every dependency across five critical metrics to generate a normalized **Replaceability Score (0-100)**. A higher score indicates a dependency that is more "locked-in" and costly to replace.
 
-## Expanding the ESLint configuration
+### 1. 🏗️ Native Presence (40%)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Detects native code signals (C++, `node-gyp`, `cgo`, `syscall`, `unsafe`). Native dependencies often require specific build environments and are significantly harder to port or replace with pure-logic alternatives.
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+### 2. 📦 Code Volume (10%)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Analyzes the physical size and source lines of code (SLOC). While not a direct measure of complexity, massive packages represent a larger "surface area" of logic that your project might be relying on.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+### 3. 🌐 API Surface (10%)
+
+Measures the breadth of the public interface.
+
+- **NPM**: Counts exports, classes, and methods.
+- **Go**: Evaluates exported functions, structs, interfaces, and anonymous nesting depth.
+- **Structural Penalty**: Higher nesting levels (Max Brace Depth) increase the score.
+
+### 4. 🪢 Entanglement (15%)
+
+Analyzes dependency chains.
+
+- Tracks direct and peer dependencies.
+- Heuristically estimates **Transitive Depth**.
+- Detects "Shell Leaks" (imports of `child_process`, `os/exec`, etc.) that suggest deep OS-level integration.
+
+### 5. 🧠 Logic Complexity (25%)
+
+A proxy for cognitive complexity.
+
+- **NPM**: Decision point density (if/else, switch, catch).
+- **Go**: Measures concurrency features (`goroutines`, `channels`, `defer`) alongside cyclomatic proxies.
+- **Confidence Modifier**: High test-file counts (coverage) slightly reduce this score, as well-tested code is easier to refactor/replace.
+
+---
+
+## 🛠️ Supported Ecosystems
+
+| Ecosystem         | Detected File  | Analysis Level                               |
+| :---------------- | :------------- | :------------------------------------------- |
+| **NPM / Node.js** | `package.json` | Deep `node_modules` scan + Registry metadata |
+| **Go Modules**    | `go.mod`       | Proxy zip download + Source code parsing     |
+
+---
+
+## 💻 CLI Usage
+
+The CLI is written in Go for speed, allowing it to parse thousands of files in milliseconds.
+
+### Installation
+
+```bash
+# Using npm
+npx @vinean/dependency-analyzer
+
+# Or build from source
+cd cli-go
+go build -o dependency-analyzer ./cmd/dependency-analyzer
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Commands
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+```bash
+# Scan current directory and open report
+npx @vinean/dependency-analyzer
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+# Scan specific project without opening browser
+npx @vinean/dependency-analyzer --project ./my-cool-app --open=false
+
+# Output raw JSON summary to stdout
+npx @vinean/dependency-analyzer --json
 ```
+
+---
+
+## 🖥️ Web Interface
+
+Dep-Scan includes a premium dashboard for exploring analysis results visually.
+
+- **Interactive Sorting**: Sort by download count, last update, or replaceability score.
+- **Maintained Status**: Smart heuristics (`yes`, `unlikely`, `no`) based on recent update history.
+- **Ecosystem Switching**: Toggle between JavaScript and Go results.
+- **JSON Export**: Export the full analysis report for further processing.
+
+To run the dashboard locally:
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## 📂 Project Structure
+
+- `cli-go/`: The core analysis engine implemented in Go.
+- `packages/dependency-analyzer/`: Node.js wrapper for the CLI distribution.
+- `src/`: React + Vite frontend source code.
+- `src/lib/`: Unified scoring logic (mirrors Go implementation for frontend-only scans).
+
+---
+
+## 📜 License
+
+Distributed under the GNU AFFERO GENERAL PUBLIC LICENSE v3.0. See `LICENSE.md` for more information.
+
+---

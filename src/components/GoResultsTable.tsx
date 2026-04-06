@@ -6,6 +6,7 @@ import {
   RefreshCw,
   ExternalLink,
   Package,
+  Download,
 } from "lucide-react";
 import type { GoModuleResult } from "../lib/analyzer-go";
 
@@ -74,6 +75,29 @@ export function GoResultsTable({
     });
   }, [results, sortKey, sortDirection]);
 
+  const handleDownloadResults = () => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      ecosystem: "go",
+      sort: {
+        key: sortKey,
+        direction: sortDirection,
+      },
+      results: sortedResults,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `go-analysis-results-${timestamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   /**
    * Check if current version differs from latest version.
    * Strips leading 'v' and compares.
@@ -101,12 +125,20 @@ export function GoResultsTable({
           </p>
         </div>
 
-        <button
-          className="btn"
-          onClick={onReset}
-          style={{ background: "rgba(255,255,255,0.1)" }}>
-          <RefreshCw size={18} /> Analyze Another
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            className="btn"
+            onClick={handleDownloadResults}
+            style={{ background: "rgba(255,255,255,0.1)" }}>
+            <Download size={18} /> Export JSON
+          </button>
+          <button
+            className="btn"
+            onClick={onReset}
+            style={{ background: "rgba(255,255,255,0.1)" }}>
+            <RefreshCw size={18} /> Analyze Another
+          </button>
+        </div>
       </div>
 
       {isAnalyzing && (
@@ -156,6 +188,7 @@ export function GoResultsTable({
                   Maintained {renderSortIcon("isMaintained")}
                 </div>
               </th>
+              <th>Replaceability</th>
             </tr>
           </thead>
           <tbody>
@@ -232,6 +265,9 @@ export function GoResultsTable({
                 </td>
                 <td>
                   {mod.status === "loading" ? "-" : renderMaintainedStatus(mod.isMaintained)}
+                </td>
+                <td>
+                  {mod.status === "loading" ? "-" : <span>See notes below</span>}
                 </td>
               </tr>
             ))}

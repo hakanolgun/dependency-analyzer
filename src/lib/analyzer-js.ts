@@ -130,8 +130,7 @@ export async function fetchPackageData(
         } catch {
           resolve(undefined);
         }
-        // Wait 500ms after each request to ensure we stay under the rate limit
-        await new Promise((r) => setTimeout(r, 250));
+        await new Promise((r) => setTimeout(r, 350));
       });
     });
 
@@ -170,7 +169,7 @@ export async function fetchPackageData(
     return result;
   } catch (err) {
     result.status = "error";
-    result.error = err.message;
+    result.error = err instanceof Error ? err.message : "Unknown error";
     return result;
   }
 }

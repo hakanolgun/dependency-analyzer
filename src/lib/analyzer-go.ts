@@ -2,6 +2,7 @@ export interface GoModuleResult {
   name: string;
   currentVersion: string;
   latestVersion?: string;
+  replaceability?: number;
   lastUpdateDate?: string;
   timeSinceLastUpdate?: string;
   isMaintained?: "yes" | "unlikely" | "no";
@@ -34,6 +35,14 @@ function formatTimeSince(dateString: string): string {
   return `${diffInYears} year${diffInYears > 1 ? "s" : ""} ago`;
 }
 
+function getMockReplaceabilityScore(seed: string): number {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 37 + seed.charCodeAt(i)) % 1000;
+  }
+  return 20 + (hash % 71);
+}
+
 /**
  * Encode a Go module path for use in proxy.golang.org URLs.
  * Uppercase letters must be escaped with a '!' prefix and lowercased.
@@ -52,8 +61,7 @@ export function parseGoMod(content: string): GoModParseResult | null {
 
   // Extract module name
   const moduleLine = lines.find((l) => l.trim().startsWith("module "));
-  if (!moduleLine) return null;
-  const moduleName = moduleLine.trim().replace("module ", "").trim();
+  const moduleName = moduleLine ? moduleLine.trim().replace("module ", "").trim() : "";
 
   // Extract go version
   const goVersionLine = lines.find((l) => l.trim().startsWith("go "));
@@ -114,6 +122,7 @@ export async function fetchGoModuleData(
   const result: GoModuleResult = {
     name,
     currentVersion,
+    replaceability: getMockReplaceabilityScore(name),
     status: "loading",
   };
 

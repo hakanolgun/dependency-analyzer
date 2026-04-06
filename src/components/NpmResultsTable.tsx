@@ -8,6 +8,7 @@ import {
   ArrowDown,
   RefreshCw,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import type { PackageResult } from "../lib/analyzer-js";
 
@@ -69,6 +70,11 @@ export function NpmResultsTable({
     return sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
   };
 
+  const formatWeeklyDownloads = (downloads?: number) => {
+    if (downloads === undefined || downloads === null) return "-";
+    return `${Math.floor(downloads / 1000)} K`;
+  };
+
   const sortedResults = React.useMemo(() => {
     if (!sortKey) return results;
 
@@ -105,6 +111,29 @@ export function NpmResultsTable({
     });
   }, [results, sortKey, sortDirection]);
 
+  const handleDownloadResults = () => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      ecosystem: "npm",
+      sort: {
+        key: sortKey,
+        direction: sortDirection,
+      },
+      results: sortedResults,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `npm-analysis-results-${timestamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <>
       <div className="header-actions">
@@ -124,12 +153,20 @@ export function NpmResultsTable({
           </p>
         </div>
 
-        <button
-          className="btn"
-          onClick={onReset}
-          style={{ background: "rgba(255,255,255,0.1)" }}>
-          <RefreshCw size={18} /> Analyze Another
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            className="btn"
+            onClick={handleDownloadResults}
+            style={{ background: "rgba(255,255,255,0.1)" }}>
+            <Download size={18} /> Export JSON
+          </button>
+          <button
+            className="btn"
+            onClick={onReset}
+            style={{ background: "rgba(255,255,255,0.1)" }}>
+            <RefreshCw size={18} /> Analyze Another
+          </button>
+        </div>
       </div>
 
       {isAnalyzing && (
@@ -186,6 +223,7 @@ export function NpmResultsTable({
                   Maintained {renderSortIcon("isMaintained")}
                 </div>
               </th>
+              <th>Replaceability</th>
               {hasReactNative && (
                 <th
                   onClick={() => handleSort("newArchitecture")}
@@ -257,9 +295,7 @@ export function NpmResultsTable({
                 <td>
                   {pkg.status === "loading"
                     ? "-"
-                    : pkg.weeklyDownloads
-                      ? pkg.weeklyDownloads.toLocaleString()
-                      : "-"}
+                    : formatWeeklyDownloads(pkg.weeklyDownloads)}
                 </td>
                 <td>
                   {pkg.status === "loading" ? (
@@ -277,6 +313,12 @@ export function NpmResultsTable({
                 </td>
                 <td>
                   {pkg.status === "loading" ? "-" : renderMaintainedStatus(pkg.isMaintained)}
+                </td>
+                <td>
+                  {pkg.status === "loading"
+                    ? "-"
+                    : <span> See notes below </span> 
+                    }
                 </td>
                 {hasReactNative && (
                   <td>
