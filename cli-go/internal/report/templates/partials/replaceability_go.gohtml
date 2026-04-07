@@ -1,0 +1,24 @@
+{{define "replaceability_go"}}
+      <div class="maintenance-legend-section">
+        <div class="legend-container">
+          <h3 class="legend-title">Replaceability Score</h3>
+          <p class="legend-description" style="text-align:center;">
+          Replaceability Score measures how difficult it would be to replace a particular dependency in your project. A higher score indicates that removing or replacing the dependency would require significant effort and could introduce risk.
+          </p>
+          <div class="legend-grid">
+            <div class="legend-item">
+              <div class="legend-badge badge-yes"><span class="lg-ico">&#9679;</span><span>Easy (0-30)</span></div>
+              <p class="legend-description">Mostly small and straightforward modules with low complexity.</p>
+            </div>
+            <div class="legend-item">
+              <div class="legend-badge badge-unlikely"><span class="lg-ico">&#9888;</span><span>Medium (31-70)</span></div>
+              <p class="legend-description">Moderate logic and dependency coupling. Replacement is possible with focused effort.</p>
+            </div>
+            <div class="legend-item">
+              <div class="legend-badge badge-no"><span class="lg-ico">&#10007;</span><span>Hard (71-100)</span></div>
+              <p class="legend-description">CGO bindings, broad API surface, or complex internals make replacement difficult.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+{{end}}

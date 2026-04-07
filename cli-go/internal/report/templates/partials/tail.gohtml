@@ -1,0 +1,10 @@
+{{define "report_tail"}}
+  <script>
+    var REPORT_DATA = {{ .ReportJSON }};
+  </script>
+  <script>
+{{ .ReportClientJS }}
+  </script>
+</body>
+</html>
+{{end}}

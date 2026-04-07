@@ -1,86 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap");
+@import "../cli-go/internal/report/assets/report.css";
 
+/* Extra design tokens and SPA tweaks (shared report chrome lives in report.css) */
 :root {
-  --bg-color: #0f172a;
-  --text-color: #f8fafc;
-  --text-muted: #94a3b8;
-  --primary: #3b82f6;
   --primary-hover: #2563eb;
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
   --go-color: #00add8;
-
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-
-  font-family:
-    "Outfit",
-    system-ui,
-    -apple-system,
-    sans-serif;
-  line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: dark;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-
-  background-image:
-    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1), transparent 25%);
-  background-attachment: fixed;
   background-size: cover;
-  min-height: 100vh;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: flex-start center;
-  min-height: 100vh;
-  padding: 2rem;
-}
-
-#root {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* Glassmorphism Classes */
-.glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: var(--glass-shadow);
-  padding: 2rem;
-}
-
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
+#root .title {
   text-align: center;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #60a5fa, #34d399);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
-.subtitle {
+#root .subtitle {
   text-align: center;
-  color: var(--text-muted);
-  margin-bottom: 2rem;
 }
 
 .or-divider {
@@ -224,99 +158,6 @@ body {
   }
 }
 
-/* Table */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: rgba(15, 23, 42, 0.4);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-th {
-  background: rgba(255, 255, 255, 0.05);
-  padding: 1rem;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--glass-border);
-}
-
-td {
-  padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  vertical-align: middle;
-}
-
-tr:last-child td {
-  border-bottom: none;
-}
-
-tr {
-  transition: background-color 0.2s ease;
-}
-
-tr:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* Badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.badge.success {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-}
-
-.badge.warning {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-}
-
-.badge.danger {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-}
-
-.badge.info {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-}
-
-.badge.gray {
-  background: rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
-}
-
-.badge.go {
-  background: rgba(0, 173, 216, 0.2);
-  color: #00d4ff;
-}
-
-.pkg-name {
-  font-weight: 600;
-  color: #e2e8f0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .rn-indicator {
   width: 16px;
   height: 16px;
@@ -393,14 +234,6 @@ tr:hover {
   right: 0.75rem;
   pointer-events: none;
   color: var(--text-muted);
-}
-
-/* App Container */
-.app-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  width: 100%;
 }
 
 /* Footer styles (similar to npms.io) */
@@ -485,52 +318,12 @@ tr:hover {
   color: #fff !important;
 }
 
-/* Maintenance Legend Section */
+/* SPA legend polish (grid/titles from shared report.css) */
 .maintenance-legend-section {
-  padding: 1.5rem 2rem;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 16px;
-  box-shadow: var(--glass-shadow);
   margin-top: 1rem;
 }
 
-.legend-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.legend-title {
-  font-size: 1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  text-align: center;
-  border-bottom: 1px solid var(--glass-border);
-  padding-bottom: 0.75rem;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 400px;
-}
-
-.legend-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
 .legend-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid transparent;
   transition: all 0.3s ease;
 }
 
@@ -538,51 +331,6 @@ tr:hover {
   background: rgba(255, 255, 255, 0.04);
   border-color: var(--glass-border);
   transform: translateY(-2px);
-}
-
-.legend-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.4rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  width: fit-content;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.badge-yes {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.badge-unlikely {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-.badge-no {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.legend-description {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-@media (max-width: 768px) {
-  .legend-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
 }
 
 .cli-command-wrapper {

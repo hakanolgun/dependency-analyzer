@@ -1,0 +1,21 @@
+{{define "maintenance_npm"}}
+      <div class="maintenance-legend-section">
+        <div class="legend-container">
+          <h3 class="legend-title">Maintenance Status Key</h3>
+          <div class="legend-grid">
+            <div class="legend-item">
+              <div class="legend-badge badge-yes"><span class="lg-ico">&#10003;</span><span>Yes</span></div>
+              <p class="legend-description">The package is active, has recent updates, and is not officially deprecated.</p>
+            </div>
+            <div class="legend-item">
+              <div class="legend-badge badge-unlikely"><span class="lg-ico">&#9888;</span><span>Unlikely</span></div>
+              <p class="legend-description">No updates in the last 2 years. The package might be abandoned.</p>
+            </div>
+            <div class="legend-item">
+              <div class="legend-badge badge-no"><span class="lg-ico">&#10007;</span><span>No</span></div>
+              <p class="legend-description">Explicitly marked as deprecated on NPM or marked as unmaintained by the community.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+{{end}}

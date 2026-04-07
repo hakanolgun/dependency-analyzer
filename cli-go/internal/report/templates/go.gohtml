@@ -1,0 +1,108 @@
+{{define "go"}}
+{{template "report_head" .}}
+{{template "report_header" .}}
+      <div class="glass-panel">
+        <div class="header-actions">
+          <div>
+            <h2 class="title" style="text-align:left;font-size:2rem;margin-bottom:0.2rem;">Analysis Complete</h2>
+            <p class="subtitle" style="text-align:left;margin:0;">
+              Analyzed {{ .ModuleCount }} modules
+              <span class="badge go" style="margin-left:0.5rem;">Go Module</span>
+            </p>
+            <p class="subtitle" style="text-align:left;margin-top:0.5rem;font-size:0.9rem;">
+              Module: {{ .ModuleName }} &middot; Go {{ .GoVersion }} &middot; Generated {{ .GeneratedAt }} &middot; Scanned {{ .ScannedCount }} &middot; Failed {{ .FailedCount }}
+            </p>
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+            <button id="btn-download" class="btn" style="background:rgba(255,255,255,0.1);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export JSON
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="results-table">
+            <thead>
+              <tr>
+                <th data-col="name" class="sortable">
+                  Module Name <span class="sort-icon" data-for="name"></span>
+                </th>
+                <th>Your Version</th>
+                <th>Latest Version</th>
+                <th data-col="lastUpdateDate" class="sortable">
+                  Last Update <span class="sort-icon" data-for="lastUpdateDate"></span>
+                </th>
+                <th data-col="isMaintained" class="sortable">
+                  Maintained <span class="sort-icon" data-for="isMaintained"></span>
+                </th>
+                <th data-col="score" class="sortable">
+                  Replaceability <span class="sort-icon" data-for="score"></span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="results-body">
+            {{ range .Rows }}
+              <tr>
+                <td>
+                  <div class="pkg-name">
+                    {{ if .RepoURL }}
+                      <a href="{{ .RepoURL }}" target="_blank" rel="noreferrer" class="repo-link" title="{{ .RepoURL }}">{{ .Name }} <span class="ext">↗</span></a>
+                    {{ else }}
+                      <span style="word-break:break-all;">{{ .Name }}</span>
+                    {{ end }}
+                  </div>
+                  {{ if .ModuleErr }}
+                    <span class="pkg-err">{{ .ModuleErr }}</span>
+                  {{ end }}
+                </td>
+                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
+                <td>
+                  {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
+                </td>
+                <td>
+                  {{ if .ShowLast }}
+                    <div class="stack">
+                      <span>{{ .LastPrimary }}</span>
+                      <span class="sub">{{ .LastSecondary }}</span>
+                    </div>
+                  {{ else }}
+                    <span class="muted">-</span>
+                  {{ end }}
+                </td>
+                <td>
+                  {{ if .ShowMaintained }}
+                    <span class="badge {{ .MaintainedClass }}">{{ .MaintainedText }}</span>
+                  {{ else }}
+                    <span class="muted">-</span>
+                  {{ end }}
+                </td>
+                <td class="cell-replace">
+                  {{ if .ReplaceShow }}
+                    <div class="replace-stack">
+                      <span class="badge {{ .RepLabelClass }}">{{ .RepLabel }}</span>
+                      <span class="sub">{{ .Score }}/100</span>
+                    </div>
+                  {{ else }}
+                    <span class="muted">-</span>
+                  {{ end }}
+                </td>
+              </tr>
+            {{ end }}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+{{template "maintenance_go"}}
+{{template "replaceability_go"}}
+{{template "report_footer"}}
+{{template "shell_close"}}
+{{template "report_tail" .}}
+{{end}}
