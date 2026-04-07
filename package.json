@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "homepage": "https://hakanolgun.github.io/dependency-analyzer",
+  "license": "GPL-3.0-or-later",
   "workspaces": [
     "packages/*"
   ],
