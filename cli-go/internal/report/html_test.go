@@ -33,11 +33,11 @@ func TestGenerateHTML(t *testing.T) {
 		},
 	}
 
-	out, err := GenerateHTML(r, tmp)
+	out, err := GenerateJsHTML(r, tmp)
 	if err != nil {
 		t.Fatalf("GenerateHTML err: %v", err)
 	}
-	if filepath.Base(out) != "dep-report.html" {
+	if filepath.Base(out) != "dependency-report.html" {
 		t.Fatalf("unexpected report file: %s", out)
 	}
 	b, err := os.ReadFile(out)

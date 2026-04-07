@@ -81,7 +81,7 @@ func runNpm(absProject string, openReport, jsonOut bool) {
 		exitErr("analysis failed", err)
 	}
 
-	outPath, err := report.GenerateHTML(projectReport, absProject)
+	outPath, err := report.GenerateJsHTML(projectReport, absProject)
 	if err != nil {
 		exitErr("report generation failed", err)
 	}

@@ -1,26 +1,21 @@
-import { useState } from "react";
-import { Circle, TriangleAlert, OctagonX, Copy, Check } from "lucide-react";
+import { Circle, TriangleAlert, OctagonX } from "lucide-react";
+import { CopyCommand, npxCommand } from "./CopyCommand";
+
 
 export function ReplaceabilityLegend() {
-  const [copied, setCopied] = useState(false);
-  const command = "npx @vinean/dependency-analyzer";
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(command);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
   return (
     <div className="maintenance-legend-section">
       <div className="legend-container">
         <h3 className="legend-title">Replaceability Score</h3>
-        <p className="legend-description">
-          Replaceability Score measures how difficult it would be to replace a particular dependency in your project. A higher score indicates that removing or replacing the dependency would require significant effort and could introduce risk.
-          If the score is low, it suggests that the dependency is easier to replace—either by implementing the functionality yourself or by using an LLM to generate an alternative solution.
+        <p className="cli-command-description">
+          Replaceability Score measures how difficult it would be to replace a particular dependency
+          in your project. A higher score indicates that removing or replacing the dependency would
+          require significant effort and could introduce risk.
         </p>
-        <p className="legend-description">
+        <p className="cli-command-description">
           Replaceability ≠ Complexity. Replaceability ⊇ Complexity.
         </p>
+
         <div className="legend-grid">
           <div className="legend-item">
             <div className="legend-badge badge-yes">
@@ -54,26 +49,18 @@ export function ReplaceabilityLegend() {
         </div>
 
         <div className="cli-command-wrapper">
+          <h4 className="legend-title">How to use?</h4>
           <p className="cli-command-description">
-            To calculate the replaceability score of your dependencies, run the CLI analyzer from your project’s root directory.
+            Run the npx command below to analyze your project's dependencies. A detailed HTML report
+            will automatically open in your browser upon completion.
+          </p>
+          <p className="cli-command-description">
+            Look for packages with low maintenance or high replaceability scores. These are your
+            primary targets for potential replacement.
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem" }}>
-          <div className="cli-command-container" onClick={handleCopy}>
-            <p className="cli-command">
-              {command}
-            </p>
-            <div className="copy-icon-wrapper">
-              {copied ? (
-                <Check size={18} className="copied-success" />
-              ) : (
-                <Copy size={18} />
-              )}
-            </div>
-          </div>
-          {copied && <span className="copy-hint copied-success">Copied to clipboard!</span>}
+          <CopyCommand command={npxCommand} />
         </div>
-          </div>
       </div>
     </div>
   );

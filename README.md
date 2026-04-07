@@ -8,7 +8,7 @@ Available as both a **high-performance Go CLI** and a **modern React Web Interfa
 
 ## 🚀 Key Pillars of Replaceability
 
-Dep-Scan evaluates every dependency across five critical metrics to generate a normalized **Replaceability Score (0-100)**. A higher score indicates a dependency that is more "locked-in" and costly to replace.
+Dependency Analyzer evaluates every dependency across five critical metrics to generate a normalized **Replaceability Score (0-100)**. A higher score indicates a dependency that is more "locked-in" and costly to replace.
 
 ### 1. 🏗️ Native Presence (40%)
 
@@ -85,7 +85,7 @@ npx @vinean/dependency-analyzer --json
 
 ## 🖥️ Web Interface
 
-Dep-Scan includes a premium dashboard for exploring analysis results visually.
+Dependency Analyzer includes a premium dashboard for exploring analysis results visually.
 
 - **Interactive Sorting**: Sort by download count, last update, or replaceability score.
 - **Maintained Status**: Smart heuristics (`yes`, `unlikely`, `no`) based on recent update history.

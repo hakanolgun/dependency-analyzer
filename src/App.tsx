@@ -1,9 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  Upload,
-  ArrowRight,
-  AlertCircle,
-} from "lucide-react";
+import { Upload, ArrowRight, AlertCircle } from "lucide-react";
 import { parsePackageJson, fetchPackageData, type PackageResult } from "./lib/analyzer-js";
 import { parseGoMod, fetchGoModuleData, type GoModuleResult } from "./lib/analyzer-go";
 import { NpmResultsTable } from "./components/NpmResultsTable";
@@ -11,6 +7,8 @@ import { GoResultsTable } from "./components/GoResultsTable";
 import { MaintenanceLegend } from "./components/MaintenanceLegend";
 import { ReplaceabilityLegend } from "./components/ReplaceabilityLegend";
 import { Footer } from "./Footer";
+import { CopyCommand, npxCommand } from "./components/CopyCommand";
+import { HomeTitle } from "./components/HomeTitle";
 
 type Ecosystem = "npm" | "go";
 
@@ -25,8 +23,7 @@ function App() {
   const [progress, setProgress] = useState(0);
   const [hasReactNative, setHasReactNative] = useState(false);
 
-  const hasResults =
-    ecosystem === "npm" ? npmResults.length > 0 : goResults.length > 0;
+  const hasResults = ecosystem === "npm" ? npmResults.length > 0 : goResults.length > 0;
 
   const handleAnalyzeNpm = useCallback(async (content: string) => {
     const parsed = parsePackageJson(content);
@@ -55,9 +52,7 @@ function App() {
 
     for (let i = 0; i < depEntries.length; i += batchSize) {
       const batch = depEntries.slice(i, i + batchSize);
-      const promises = batch.map(([name, version]) =>
-        fetchPackageData(name, version, isRN),
-      );
+      const promises = batch.map(([name, version]) => fetchPackageData(name, version, isRN));
       const batchResults = await Promise.all(promises);
       newResults.push(...batchResults);
       setProgress(Math.round(((i + batch.length) / depEntries.length) * 100));
@@ -88,14 +83,10 @@ function App() {
 
     for (let i = 0; i < parsed.dependencies.length; i += batchSize) {
       const batch = parsed.dependencies.slice(i, i + batchSize);
-      const promises = batch.map((dep) =>
-        fetchGoModuleData(dep.path, dep.version),
-      );
+      const promises = batch.map((dep) => fetchGoModuleData(dep.path, dep.version));
       const batchResults = await Promise.all(promises);
       newResults.push(...batchResults);
-      setProgress(
-        Math.round(((i + batch.length) / parsed.dependencies.length) * 100),
-      );
+      setProgress(Math.round(((i + batch.length) / parsed.dependencies.length) * 100));
       setGoResults([...newResults]);
     }
 
@@ -132,9 +123,7 @@ function App() {
       }
 
       if (!targetEcosystem) {
-        setError(
-          "Could not detect file type. Please upload a valid package.json or go.mod.",
-        );
+        setError("Could not detect file type. Please upload a valid package.json or go.mod.");
         return;
       }
 
@@ -229,47 +218,13 @@ function App() {
       <div className="glass-panel">
         {!hasResults && !isAnalyzing ? (
           <>
-            <h1 className="title">Dependency Analyzer</h1>
-            <h2
-              className="subtitle"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-                marginTop: "-0.5rem",
-              }}>
-              <a
-                href="https://github.com/hakanolgun/dependency-analyzer"
-                target="_blank"
-                rel="noreferrer"
-                className="repo-link"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  color: "inherit",
-                  textDecoration: "none",
-                  transition: "color 0.2s ease",
-                }}>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                </svg>
-                Free and Open Source
-              </a>
-            </h2>
-            <p className="subtitle">
-              Upload your <strong>package.json</strong> or{" "}
-              <strong>go.mod</strong> file
+            <HomeTitle />
+
+            <p className="or-divider">
+              Run this command in your project directory to produce complete report
             </p>
+            <CopyCommand command={npxCommand} />
+            <div className="or-divider">— OR —</div>
 
             <label
               className={`upload-area ${dragActive ? "drag-active" : ""}`}
@@ -279,8 +234,7 @@ function App() {
               onDrop={onDrop}>
               <Upload className="upload-icon" />
               <div className="upload-text">
-                Drag & Drop <strong>package.json</strong> or{" "}
-                <strong>go.mod</strong> here
+                Upload <strong>package.json</strong> or <strong>go.mod</strong> file here
               </div>
 
               <div className="upload-hint">or click to browse files</div>
@@ -293,14 +247,7 @@ function App() {
             </label>
 
             <div className="text-area-container">
-              <div
-                style={{
-                  textAlign: "center",
-                  color: "var(--text-muted)",
-                  margin: "0.5rem 0",
-                }}>
-                — OR PASTE CONTENT —
-              </div>
+              <div className="or-divider">— OR —</div>
               <textarea
                 className="json-input"
                 placeholder={placeholder}

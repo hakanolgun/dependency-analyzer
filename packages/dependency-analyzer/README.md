@@ -57,7 +57,7 @@ Identify abandoned or deprecated packages before they become a liability.
 
 ## 📑 Interactive Dashboard
 
-The tool generates a `dep-report.html` interactive dashboard in your project directory:
+The tool generates a `dependency-report.html` interactive dashboard in your project directory:
 
 - **Sortable Metrics**: Rank dependencies by complexity, downloads, or update age.
 - **Export Capabilities**: Download the full analysis as a JSON for CI/CD or internal tools.
