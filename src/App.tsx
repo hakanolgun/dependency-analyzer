@@ -224,7 +224,7 @@ function App() {
               Run this command in your project directory to produce complete report
             </p>
             <CopyCommand command={npxCommand} />
-            <div className="or-divider">— OR —</div>
+            <div className="or-divider">— OR TO GET A BASIC REPORT WITHOUT ANALYSIS —</div>
 
             <label
               className={`upload-area ${dragActive ? "drag-active" : ""}`}
