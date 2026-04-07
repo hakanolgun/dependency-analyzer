@@ -36,9 +36,6 @@ type DependencyResult struct {
 	// React Native directory (only populated when root has react-native).
 	IsReactNativeLib bool  `json:"isReactNativeLib,omitempty"`
 	NewArchitecture  *bool `json:"newArchitecture,omitempty"`
-
-	// Replaceability cell: high = local node_modules scan succeeded.
-	Confidence string `json:"confidence,omitempty"` // high | medium | low
 }
 
 type ProjectReport struct {
@@ -65,7 +62,6 @@ type GoModuleResult struct {
 	IsMaintained      string  `json:"isMaintained,omitempty"` // yes | unlikely | no
 	RepoURL           string  `json:"repoUrl,omitempty"`
 	Error             string  `json:"error,omitempty"`
-	Confidence        string  `json:"confidence,omitempty"` // high | medium | low
 }
 
 // GoProjectReport bundles the results of a Go module analysis.

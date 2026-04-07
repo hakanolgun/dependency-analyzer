@@ -121,16 +121,11 @@ func analyzeDependency(ctx context.Context, client *Client, modulePath, version 
 	if zipErr != nil {
 		// Fallback: still report metadata but mark scoring as failed
 		res.Error = fmt.Sprintf("source download failed: %v", zipErr)
-		res.Confidence = "low"
-		// If we have metadata, still compute a mock-ish score from proxy metadata
-		if metaErr == nil {
-			res.Confidence = "low"
-		}
 		return res
 	}
 
 	// Analyze source for replaceability
-	metrics, confidence := analyzeSourceZip(zipReader)
+	metrics := analyzeSourceZip(zipReader)
 
 	// Fetch the dependency's own go.mod for entanglement enrichment
 	depModContent, depModErr := client.FetchModuleMod(ctx, modulePath, zipVersion)
@@ -143,7 +138,6 @@ func analyzeDependency(ctx context.Context, client *Client, modulePath, version 
 	res.Score = engine.ToPercentageScore(norm)
 	res.Label = engine.ScoreLabel(norm)
 	res.Metrics = metrics
-	res.Confidence = confidence
 
 	return res
 }
@@ -178,7 +172,7 @@ type sourceStats struct {
 	testFileCount    int
 }
 
-func analyzeSourceZip(zr *zip.Reader) (engine.Metrics, string) {
+func analyzeSourceZip(zr *zip.Reader) engine.Metrics {
 	var stats sourceStats
 
 	for _, f := range zr.File {
@@ -357,7 +351,7 @@ func enrichEntanglement(m *engine.Metrics, goModContent string) {
 	m.Entanglement = clamp(m.Entanglement + additionalEntanglement)
 }
 
-func computeGoMetrics(stats *sourceStats) (engine.Metrics, string) {
+func computeGoMetrics(stats *sourceStats) engine.Metrics {
 	var m engine.Metrics
 
 	// ── Native Presence (0.40 weight) ──
@@ -424,15 +418,7 @@ func computeGoMetrics(stats *sourceStats) (engine.Metrics, string) {
 	}
 	m.LogicComplexity = logic
 
-	// Confidence
-	confidence := "high"
-	if stats.goFileCount == 0 {
-		confidence = "low"
-	} else if stats.goFileCount < 3 {
-		confidence = "medium"
-	}
-
-	return m, confidence
+	return m
 }
 
 func clamp(v float64) float64 {

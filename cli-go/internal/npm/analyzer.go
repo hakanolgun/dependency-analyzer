@@ -78,11 +78,8 @@ func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.Projec
 	for i, name := range names {
 		version := merged[name]
 		result := analyzeDependency(projectPath, name, version)
-		if result.Error == "" {
-			result.Confidence = "high"
-		} else {
+		if result.Error != "" {
 			failures++
-			result.Confidence = "low"
 		}
 		results[i] = result
 	}
@@ -94,11 +91,6 @@ func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.Projec
 			meta, err := reg.FetchRegistryMeta(ctx, name, hasReactNative)
 			if err == nil {
 				applyRegistryMeta(result, meta, hasReactNative)
-				if result.Error != "" {
-					result.Confidence = "medium"
-				}
-			} else if result.Error != "" {
-				result.Confidence = "low"
 			}
 		}
 	}

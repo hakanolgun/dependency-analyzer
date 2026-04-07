@@ -125,15 +125,12 @@ func TestComputeGoMetrics_NoCgo(t *testing.T) {
 		exportedMethods: 4,
 		goFileCount:     3,
 	}
-	m, conf := computeGoMetrics(stats)
+	m := computeGoMetrics(stats)
 	if m.Native != 0 {
 		t.Errorf("expected native=0, got %v", m.Native)
 	}
 	if m.Volume != 0 {
 		t.Errorf("expected volume=0 for <1000 SLOC, got %v", m.Volume)
-	}
-	if conf != "high" {
-		t.Errorf("expected confidence=high, got %q", conf)
 	}
 }
 
@@ -143,7 +140,7 @@ func TestComputeGoMetrics_WithCgo(t *testing.T) {
 		hasCgo:      true,
 		goFileCount: 10,
 	}
-	m, _ := computeGoMetrics(stats)
+	m := computeGoMetrics(stats)
 	if m.Native != 1.0 {
 		t.Errorf("expected native=1.0 with cgo, got %v", m.Native)
 	}
@@ -158,7 +155,7 @@ func TestComputeGoMetrics_OsExecAddsEntanglement(t *testing.T) {
 		hasOsExec:   true,
 		goFileCount: 1,
 	}
-	m, _ := computeGoMetrics(stats)
+	m := computeGoMetrics(stats)
 	if m.Entanglement < 0.1 {
 		t.Errorf("expected entanglement >= 0.1 with os/exec, got %v", m.Entanglement)
 	}
@@ -170,19 +167,9 @@ func TestComputeGoMetrics_ReflectAddsComplexity(t *testing.T) {
 		hasReflect:  true,
 		goFileCount: 1,
 	}
-	m, _ := computeGoMetrics(stats)
+	m := computeGoMetrics(stats)
 	if m.LogicComplexity < 0.1 {
 		t.Errorf("expected logicComplexity >= 0.1 with reflect, got %v", m.LogicComplexity)
-	}
-}
-
-func TestComputeGoMetrics_LowConfidenceNoGoFiles(t *testing.T) {
-	stats := &sourceStats{
-		goFileCount: 0,
-	}
-	_, conf := computeGoMetrics(stats)
-	if conf != "low" {
-		t.Errorf("expected confidence=low with 0 go files, got %q", conf)
 	}
 }
 

@@ -167,7 +167,6 @@ tr:hover { background: rgba(255, 255, 255, 0.03); }
   justify-content: center;
   gap: 2px;
 }
-.badge.conf { font-size: 0.65rem; }
 .na-yes { color: var(--success); font-weight: 600; }
 .na-no  { color: var(--danger);  font-weight: 600; }
 /* ── Badges ── */

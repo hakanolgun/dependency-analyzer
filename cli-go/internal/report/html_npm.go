@@ -70,9 +70,6 @@ type htmlRow struct {
 	RepLabel      string
 	RepLabelClass string
 	Score         int
-	ConfClass     string
-	ConfText      string
-	ConfShow      bool
 
 	NewArchCell string // "ok", "no", "dash"
 }
@@ -142,20 +139,6 @@ func htmlRowFrom(dep engine.DependencyResult, hasRNRoot bool) htmlRow {
 		row.RepLabel = lbl
 		row.RepLabelClass = cls
 		row.Score = dep.Score
-		switch strings.ToLower(dep.Confidence) {
-		case "high":
-			row.ConfShow = true
-			row.ConfClass = "success"
-			row.ConfText = "High"
-		case "medium":
-			row.ConfShow = true
-			row.ConfClass = "warning"
-			row.ConfText = "Medium"
-		case "low":
-			row.ConfShow = true
-			row.ConfClass = "danger"
-			row.ConfText = "Low"
-		}
 	}
 
 	if hasRNRoot {

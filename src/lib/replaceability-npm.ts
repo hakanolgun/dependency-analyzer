@@ -49,7 +49,6 @@ export interface NpmReplaceabilityResult {
   normalized: number;
   score: number;
   metrics: NpmReplaceabilityMetrics;
-  confidence: "high" | "medium" | "low";
 }
 
 interface CalculateNpmReplaceabilityInput {
@@ -288,14 +287,12 @@ export async function calculateNpmReplaceability({
   let shellLeakFromTree = false;
   let shellLeakFromSource = false;
   let sourceCode = "";
-  let hasTreeData = false;
 
   if (latestVersion) {
     const unpkgMeta = await fetchUnpkgMeta(packageName, latestVersion);
     let filePaths: string[] = [];
     if (unpkgMeta?.files) {
       filePaths = collectFilePaths(unpkgMeta.files);
-      hasTreeData = filePaths.length > 0;
       nativeFromTree = hasNativeFiles(filePaths);
       shellLeakFromTree = hasShellLeakPaths(filePaths);
     }
@@ -305,7 +302,6 @@ export async function calculateNpmReplaceability({
         filePaths = jsdelivrMeta.files
           .map((file) => file.name)
           .filter((name): name is string => typeof name === "string");
-        hasTreeData = filePaths.length > 0;
         nativeFromTree = hasNativeFiles(filePaths);
         shellLeakFromTree = hasShellLeakPaths(filePaths);
       }
@@ -356,13 +352,10 @@ export async function calculateNpmReplaceability({
   }
 
   const normalized = clamp(computeWeightedScore(metrics));
-  const confidence: "high" | "medium" | "low" =
-    sourceCode && hasTreeData ? "high" : sourceCode || hasTreeData ? "medium" : "low";
 
   return {
     normalized,
     score: Math.round(normalized * 100),
     metrics,
-    confidence,
   };
 }
