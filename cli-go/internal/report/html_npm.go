@@ -113,7 +113,7 @@ func htmlRowFrom(dep engine.DependencyResult, hasRNRoot bool) htmlRow {
 		row.HasLatest = true
 	}
 
-	row.WeeklyDownloads = formatDownloadsK(dep.WeeklyDownloads)
+	row.WeeklyDownloads = formatDownloadCount(dep.WeeklyDownloads)
 
 	if dep.TimeSinceLastUpdate != "" {
 		row.LastPrimary = dep.TimeSinceLastUpdate
@@ -167,11 +167,11 @@ func stripRange(v string) string {
 	return v
 }
 
-func formatDownloadsK(p *int) string {
+func formatDownloadCount(p *int) string {
 	if p == nil {
 		return "-"
 	}
-	return fmt.Sprintf("%d K", *p/1000)
+	return fmt.Sprintf("%d", *p)
 }
 
 func maintainedBadgeClass(m string) string {

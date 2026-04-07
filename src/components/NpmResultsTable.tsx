@@ -22,6 +22,14 @@ interface NpmResultsTableProps {
 
 type SortKey = "weeklyDownloads" | "lastUpdateDate" | "isMaintained" | "newArchitecture" | null;
 
+/** Valid non-negative download count for sorting, or null when unknown / invalid. */
+function normalizedWeeklyDownloads(v: unknown): number | null {
+  if (v == null) return null;
+  const n = typeof v === "number" ? v : Number(v);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
 export function NpmResultsTable({
   results,
   isAnalyzing,
@@ -72,13 +80,24 @@ export function NpmResultsTable({
 
   const formatWeeklyDownloads = (downloads?: number) => {
     if (downloads === undefined || downloads === null) return "-";
-    return `${Math.floor(downloads / 1000)} K`;
+    return String(downloads);
   };
 
   const sortedResults = React.useMemo(() => {
     if (!sortKey) return results;
 
     return [...results].sort((a, b) => {
+      if (sortKey === "weeklyDownloads") {
+        const na = normalizedWeeklyDownloads(a.weeklyDownloads);
+        const nb = normalizedWeeklyDownloads(b.weeklyDownloads);
+        if (na === null && nb === null) return 0;
+        if (na === null) return 1;
+        if (nb === null) return -1;
+        if (na < nb) return sortDirection === "asc" ? -1 : 1;
+        if (na > nb) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      }
+
       let valA: string | number | boolean | undefined = a[sortKey] as unknown as
         | string
         | number

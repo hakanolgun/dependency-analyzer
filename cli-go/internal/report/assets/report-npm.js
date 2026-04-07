@@ -8,10 +8,27 @@
   // ── Sort helpers ─────────────────────────────────────────────
   var maintainedWeight = { yes: 3, unlikely: 2, no: 1 };
 
+  function normalizeWeeklyDownloads(n) {
+    if (n == null) return null;
+    var x = typeof n === 'number' ? n : Number(n);
+    if (!Number.isFinite(x) || x < 0) return null;
+    return x;
+  }
+
+  function compareWeeklyDownloads(a, b, dir) {
+    var na = normalizeWeeklyDownloads(a.weeklyDownloads);
+    var nb = normalizeWeeklyDownloads(b.weeklyDownloads);
+    if (na === null && nb === null) return 0;
+    if (na === null) return 1;
+    if (nb === null) return -1;
+    if (na < nb) return dir === 'asc' ? -1 : 1;
+    if (na > nb) return dir === 'asc' ? 1 : -1;
+    return 0;
+  }
+
   function valueOf(dep, key) {
     switch (key) {
       case 'name':            return (dep.name || '').toLowerCase();
-      case 'weeklyDownloads': return dep.weeklyDownloads != null ? dep.weeklyDownloads : -1;
       case 'lastUpdateDate':  return dep.lastUpdateDate ? new Date(dep.lastUpdateDate).getTime() : 0;
       case 'isMaintained':    return maintainedWeight[dep.isMaintained] || 0;
       case 'score':           return dep.score != null ? dep.score : -1;
@@ -24,6 +41,9 @@
     var deps = REPORT_DATA.dependencies.slice();
     if (!sortKey) return deps;
     deps.sort(function (a, b) {
+      if (sortKey === 'weeklyDownloads') {
+        return compareWeeklyDownloads(a, b, sortDir);
+      }
       var va = valueOf(a, sortKey);
       var vb = valueOf(b, sortKey);
       if (va < vb) return sortDir === 'asc' ? -1 : 1;
@@ -69,7 +89,7 @@
 
   function formatDownloads(n) {
     if (n == null) return '-';
-    return Math.floor(n / 1000) + ' K';
+    return String(n);
   }
 
   function formatDate(dep) {
