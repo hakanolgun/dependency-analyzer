@@ -24,13 +24,55 @@ const EXPORT_PATTERN = /export\s+(const|function|class|interface|type)\b/g;
 const BLACK_MAGIC_PATTERN = /(eval\s*\(|new\s+Function\s*\(|Buffer\.from\s*\()/g;
 const SHELL_IMPORT_PATTERN = /\b(child_process|execa)\b/g;
 const SHELL_EXEC_PATTERN = /(\.spawn\s*\(|\.exec\s*\()/g;
-const unpkgMetaCache = new Map<string, Promise<any | null>>();
-const jsdelivrMetaCache = new Map<string, Promise<any | null>>();
+const GITHUB_REPO_IN_URL = /github\.com[/:]([^/]+)\/([^/.]+)/i;
+const STRONG_NATIVE_GITHUB_LANGS = new Set([
+  "Rust",
+  "Go",
+  "C",
+  "C++",
+  "Objective-C",
+  "Swift",
+  "Kotlin",
+  "Java",
+  "Zig",
+  "C#",
+  "Assembly",
+]);
+const BINARY_SHIM_MIN_BYTES = 120_000;
+const BINARY_SHIM_MIN_BYTES_PER_LINE = 2000;
+const unpkgMetaCache = new Map<string, Promise<UnpkgMeta | null>>();
+const githubLanguageCache = new Map<string, Promise<string | null>>();
+const GITHUB_LANG_MIN_INTERVAL_MS = 350;
+let githubLangLastFetchAtMs = 0;
+const jsdelivrMetaCache = new Map<string, Promise<JsdelivrFlatMeta | null>>();
 const sourceTextCache = new Map<string, Promise<string | null>>();
 
 interface UnpkgFileNode {
   path?: string;
   files?: UnpkgFileNode[];
+}
+
+/** Minimal shape of unpkg `?meta` JSON used by this module. */
+interface UnpkgMeta {
+  files?: UnpkgFileNode[];
+}
+
+interface NpmManifest {
+  bin?: string | Record<string, string>;
+  browser?: string;
+  dependencies?: Record<string, string>;
+  dist?: { unpackedSize?: number };
+  main?: string;
+  module?: string;
+  peerDependencies?: Record<string, string>;
+  repository?: string | { url?: string };
+  scripts?: Record<string, string>;
+  unpkg?: string;
+}
+
+interface NpmRegistryData {
+  "dist-tags"?: { latest?: string };
+  versions?: Record<string, NpmManifest | undefined>;
 }
 
 interface JsdelivrFlatMeta {
@@ -54,7 +96,7 @@ export interface NpmReplaceabilityResult {
 interface CalculateNpmReplaceabilityInput {
   packageName: string;
   latestVersion?: string;
-  registryData: any;
+  registryData: NpmRegistryData;
 }
 
 function clamp(value: number, min = 0, max = 1): number {
@@ -67,11 +109,12 @@ function normalizeLinear(value: number, min: number, max: number): number {
   return (value - min) / (max - min);
 }
 
-function getLatestManifest(registryData: any, latestVersion?: string): any {
-  if (latestVersion && registryData?.versions?.[latestVersion]) {
+function getLatestManifest(registryData: NpmRegistryData, latestVersion?: string): NpmManifest {
+  if (latestVersion && registryData.versions?.[latestVersion]) {
     return registryData.versions[latestVersion];
   }
-  return registryData?.versions?.[registryData?.["dist-tags"]?.latest] || {};
+  const fromLatestTag = registryData.versions?.[registryData["dist-tags"]?.latest ?? ""];
+  return fromLatestTag ?? {};
 }
 
 function normalizeMainFilePath(mainFile: string | undefined): string {
@@ -154,6 +197,143 @@ function hasShellLeakPaths(paths: string[]): boolean {
   return lowerPaths.some((path) => path.includes("/bin/") || path.endsWith("cli.js"));
 }
 
+function hasNpmBinField(bin: unknown): boolean {
+  if (bin == null) return false;
+  if (typeof bin === "string") return bin.trim() !== "";
+  if (typeof bin === "object") return Object.keys(bin as object).length > 0;
+  return false;
+}
+
+function parseGitHubOwnerRepoFromManifest(repository: unknown): string {
+  let raw = "";
+  if (typeof repository === "string") {
+    raw = repository;
+  } else if (repository && typeof repository === "object" && "url" in repository) {
+    const u = (repository as { url?: string }).url;
+    if (typeof u === "string") raw = u;
+  }
+  return extractGitHubOwnerRepoFromURL(raw);
+}
+
+function extractGitHubOwnerRepoFromURL(raw: string): string {
+  const t = raw.trim();
+  if (/^github:/i.test(t)) {
+    const tail = t
+      .slice(7)
+      .trim()
+      .replace(/\.git$/i, "");
+    const parts = tail.split("/");
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return `${parts[0]}/${parts[1]}`;
+    }
+  }
+  const s = t
+    .replace(/^git\+/i, "")
+    .replace(/\.git$/i, "")
+    .replace(/^git:\/\//i, "https://");
+  const m = s.match(GITHUB_REPO_IN_URL);
+  if (!m?.[1] || !m[2]) return "";
+  return `${m[1]}/${m[2]}`;
+}
+
+function binaryShimNativePresence(
+  unpackedBytes: number,
+  lineCount: number,
+  hasBin: boolean,
+): number {
+  if (!hasBin || !Number.isFinite(unpackedBytes) || unpackedBytes < BINARY_SHIM_MIN_BYTES) {
+    return 0;
+  }
+  if (lineCount < 1) {
+    return 1;
+  }
+  if (unpackedBytes / lineCount >= BINARY_SHIM_MIN_BYTES_PER_LINE) {
+    return 1;
+  }
+  return 0;
+}
+
+function finalizeNativeFromBinaryShim(
+  base: number,
+  unpackedBytes: number,
+  lineCount: number,
+  hasBin: boolean,
+): number {
+  return clamp(Math.max(base, binaryShimNativePresence(unpackedBytes, lineCount, hasBin)));
+}
+
+async function throttleGitHubLanguagesFetch(): Promise<void> {
+  const now = Date.now();
+  const elapsed = now - githubLangLastFetchAtMs;
+  if (githubLangLastFetchAtMs > 0 && elapsed < GITHUB_LANG_MIN_INTERVAL_MS) {
+    await sleep(GITHUB_LANG_MIN_INTERVAL_MS - elapsed);
+  }
+  githubLangLastFetchAtMs = Date.now();
+}
+
+function primaryLanguageFromLanguagesPayload(data: unknown): string | null {
+  if (data === null || typeof data !== "object") return null;
+  const entries = Object.entries(data as Record<string, unknown>);
+  let best = "";
+  let maxBytes = 0;
+  for (const [lang, raw] of entries) {
+    const n = typeof raw === "number" ? raw : Number(raw);
+    if (!Number.isFinite(n) || n <= maxBytes) continue;
+    maxBytes = n;
+    best = lang;
+  }
+  return best.trim() || null;
+}
+
+async function fetchGitHubLanguagesOnce(url: string, init: RequestInit): Promise<Response | null> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchGitHubPrimaryLanguage(ownerRepo: string): Promise<string | null> {
+  const cached = githubLanguageCache.get(ownerRepo);
+  if (cached) return cached;
+
+  const request = (async (): Promise<string | null> => {
+    const parts = ownerRepo.split("/");
+    if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+    const url = `https://api.github.com/repos/${encodeURIComponent(parts[0])}/${encodeURIComponent(
+      parts[1],
+    )}/languages`;
+    const init: RequestInit = {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "dependency-analyzer-replaceability",
+      },
+    };
+
+    await throttleGitHubLanguagesFetch();
+    let response = await fetchGitHubLanguagesOnce(url, init);
+    if (response && (response.status === 429 || response.status === 403)) {
+      const retryAfter = Number(response.headers.get("retry-after"));
+      const backoffMs =
+        Number.isFinite(retryAfter) && retryAfter > 0 ? Math.min(retryAfter * 1000, 120_000) : 2000;
+      await sleep(backoffMs);
+      await throttleGitHubLanguagesFetch();
+      response = await fetchGitHubLanguagesOnce(url, init);
+    }
+
+    if (!response?.ok) return null;
+    try {
+      const data: unknown = await response.json();
+      return primaryLanguageFromLanguagesPayload(data);
+    } catch {
+      return null;
+    }
+  })();
+
+  githubLanguageCache.set(ownerRepo, request);
+  return request;
+}
+
 function computeWeightedScore(metrics: NpmReplaceabilityMetrics): number {
   return (
     metrics.native * WEIGHTS.native +
@@ -168,17 +348,20 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchWithRetry(url: string, retries = 2): Promise<Response | null> {
+async function fetchWithRetry(
+  url: string,
+  retries = 2,
+  init?: RequestInit,
+): Promise<Response | null> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, init);
       if (response.status !== 429) return response;
 
       if (attempt === retries) return response;
       const retryAfter = Number(response.headers.get("retry-after"));
-      const backoffMs = Number.isFinite(retryAfter) && retryAfter > 0
-        ? retryAfter * 1000
-        : 500 * (attempt + 1);
+      const backoffMs =
+        Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 500 * (attempt + 1);
       await sleep(backoffMs);
     } catch {
       if (attempt === retries) return null;
@@ -188,17 +371,17 @@ async function fetchWithRetry(url: string, retries = 2): Promise<Response | null
   return null;
 }
 
-async function fetchUnpkgMeta(packageName: string, version: string): Promise<any | null> {
+async function fetchUnpkgMeta(packageName: string, version: string): Promise<UnpkgMeta | null> {
   const cacheKey = `${packageName}@${version}`;
   const cached = unpkgMetaCache.get(cacheKey);
   if (cached) return cached;
 
-  const request = (async () => {
+  const request = (async (): Promise<UnpkgMeta | null> => {
     const url = `https://unpkg.com/${packageName}@${version}/?meta`;
     const response = await fetchWithRetry(url, 2);
     if (!response?.ok) return null;
     try {
-      return await response.json();
+      return (await response.json()) as UnpkgMeta;
     } catch {
       return null;
     }
@@ -208,7 +391,10 @@ async function fetchUnpkgMeta(packageName: string, version: string): Promise<any
   return request;
 }
 
-async function fetchJsdelivrMeta(packageName: string, version: string): Promise<JsdelivrFlatMeta | null> {
+async function fetchJsdelivrMeta(
+  packageName: string,
+  version: string,
+): Promise<JsdelivrFlatMeta | null> {
   const cacheKey = `${packageName}@${version}`;
   const cached = jsdelivrMetaCache.get(cacheKey);
   if (cached) return cached;
@@ -239,7 +425,8 @@ async function fetchSourceFromCdn(url: string): Promise<string | null> {
         return null;
       }
       return await response.text();
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       return null;
     }
   })();
@@ -308,11 +495,7 @@ export async function calculateNpmReplaceability({
     }
 
     const mainEntry =
-      manifest?.unpkg ||
-      manifest?.browser ||
-      manifest?.module ||
-      manifest?.main ||
-      "index.js";
+      manifest?.unpkg || manifest?.browser || manifest?.module || manifest?.main || "index.js";
     const resolvedMain = typeof mainEntry === "string" ? mainEntry : "index.js";
     const entrySource = await fetchMainEntrySource(
       packageName,
@@ -327,14 +510,27 @@ export async function calculateNpmReplaceability({
   }
 
   const exportCount = sourceCode ? countRegexMatches(sourceCode, EXPORT_PATTERN) : 0;
-  const lineCount = sourceCode ? sourceCode.split(/\r?\n/).length : 1;
+  const rawSourceLines = sourceCode ? sourceCode.split(/\r?\n/).length : 0;
+  const lineCount = Math.max(rawSourceLines, 1);
   const logicKeywordCount = sourceCode ? countRegexMatches(sourceCode, LOGIC_KEYWORDS) : 0;
-  const logicDensity = logicKeywordCount / Math.max(lineCount, 1);
+  const logicDensity = logicKeywordCount / lineCount;
   const hasBlackMagic = sourceCode ? BLACK_MAGIC_PATTERN.test(sourceCode) : false;
   const hasShellExec = sourceCode ? SHELL_EXEC_PATTERN.test(sourceCode) : false;
 
+  let native = nativeFromScripts || nativeFromTree ? 1 : 0;
+  const hasBin = hasNpmBinField(manifest?.bin);
+  native = finalizeNativeFromBinaryShim(native, unpackedSize, rawSourceLines, hasBin);
+  const ghRepo = parseGitHubOwnerRepoFromManifest(manifest?.repository);
+  if (ghRepo) {
+    const lang = await fetchGitHubPrimaryLanguage(ghRepo);
+    if (lang && STRONG_NATIVE_GITHUB_LANGS.has(lang)) {
+      native = Math.max(native, 1);
+    }
+  }
+  native = clamp(native);
+
   const metrics: NpmReplaceabilityMetrics = {
-    native: nativeFromScripts || nativeFromTree ? 1 : 0,
+    native,
     volume: normalizeLinear(unpackedSize, MIN_VOLUME_BYTES, MAX_VOLUME_BYTES),
     apiSurface: clamp(exportCount / 50),
     entanglement: clamp((dependencies + peerDependencies * 2) / 40),

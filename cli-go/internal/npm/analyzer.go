@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/cliui"
 	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/engine"
@@ -41,6 +42,8 @@ type rootPackageJSON struct {
 type depPackageJSON struct {
 	Dependencies     map[string]string `json:"dependencies"`
 	PeerDependencies map[string]string `json:"peerDependencies"`
+	Repository       json.RawMessage   `json:"repository"`
+	Bin              json.RawMessage   `json:"bin"`
 }
 
 // AnalyzeOptions configures npm project analysis.
@@ -195,11 +198,12 @@ func analyzeDependencyWithOpts(ctx context.Context, projectPath, depName, reqVer
 	res := engine.DependencyResult{Name: depName, Version: reqVersion}
 
 	if depPath, ok := resolveDependencyDir(projectPath, depName); ok {
-		metrics, err := collectMetrics(depPath)
+		metrics, ghRepo, err := collectMetrics(depPath)
 		if err != nil {
 			res.Error = err.Error()
 			return res, ""
 		}
+		applyGitHubNativeLanguageHint(ctx, ghostClient, ghRepo, &metrics)
 		norm := engine.ComputeNormalized(metrics)
 		res.Normalized = norm
 		res.Score = engine.ToPercentageScore(norm)
@@ -239,20 +243,41 @@ func resolveDependencyDir(projectPath, depName string) (string, bool) {
 	return real, true
 }
 
-func collectMetrics(depPath string) (engine.Metrics, error) {
+func applyGitHubNativeLanguageHint(ctx context.Context, ghostClient *Client, ghRepo string, metrics *engine.Metrics) {
+	if ghRepo == "" {
+		return
+	}
+	client := httpClientForNativeHints(nil)
+	if ghostClient != nil {
+		client = httpClientForNativeHints(ghostClient.HTTP)
+	}
+	langCtx, cancel := context.WithTimeout(ctx, 7*time.Second)
+	defer cancel()
+	lang, err := FetchGitHubPrimaryLanguage(langCtx, client, ghRepo)
+	if err != nil || lang == "" {
+		return
+	}
+	applyGitHubStrongNativeLanguage(metrics, lang)
+}
+
+func collectMetrics(depPath string) (engine.Metrics, string, error) {
 	var m engine.Metrics
 	pkgJSONPath := filepath.Join(depPath, "package.json")
 	pkgJSONBytes, err := os.ReadFile(pkgJSONPath)
 	if err != nil {
-		return m, errors.New("package.json missing in dependency")
+		return m, "", errors.New("package.json missing in dependency")
 	}
 
 	var depPkg depPackageJSON
 	if err := json.Unmarshal(pkgJSONBytes, &depPkg); err != nil {
-		return m, errors.New("invalid dependency package.json")
+		return m, "", errors.New("invalid dependency package.json")
 	}
 
+	githubRepo := parseGitHubOwnerRepo(depPkg.Repository)
+	hasBin := hasNpmBinField(depPkg.Bin)
+
 	var (
+		pkgBytes         int64
 		sloc             int
 		exportCount      int
 		classCount       int
@@ -292,6 +317,12 @@ func collectMetrics(depPath string) (engine.Metrics, error) {
 
 		if lowerName == "binding.gyp" {
 			hasBindingGyp = true
+		}
+
+		if !d.IsDir() {
+			if fi, infoErr := d.Info(); infoErr == nil {
+				pkgBytes += fi.Size()
+			}
 		}
 
 		ext := strings.ToLower(filepath.Ext(name))
@@ -339,7 +370,7 @@ func collectMetrics(depPath string) (engine.Metrics, error) {
 		return nil
 	})
 	if err != nil {
-		return m, err
+		return m, githubRepo, err
 	}
 
 	directDeps := len(depPkg.Dependencies)
@@ -350,6 +381,7 @@ func collectMetrics(depPath string) (engine.Metrics, error) {
 	if hasNativeSignals || hasBindingGyp {
 		native = 1.0
 	}
+	native = finalizeNativeFromBinaryShim(native, pkgBytes, sloc, hasBin)
 
 	apiRaw := float64(exportCount) + float64(classCount)*avgPublicMethods(classCount, methodCount)*0.5 + float64(interfaceCount)*0.5
 	api := clamp(apiRaw / 50.0)
@@ -379,7 +411,7 @@ func collectMetrics(depPath string) (engine.Metrics, error) {
 		Entanglement:    entanglement,
 		LogicComplexity: logic,
 	}
-	return m, nil
+	return m, githubRepo, nil
 }
 
 func avgPublicMethods(classCount, methodCount int) float64 {

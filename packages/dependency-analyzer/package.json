@@ -1,6 +1,6 @@
 {
   "name": "@vinean/dependency-analyzer",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Dependency Analyzer for npm and go packages with replaceability analysis",
   "type": "module",
   "bin": {
@@ -38,5 +38,5 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "GPL-3.0-or-later"
 }

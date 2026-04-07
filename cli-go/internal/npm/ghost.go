@@ -166,12 +166,14 @@ func analyzeDependencyGhost(ctx context.Context, c *Client, projectPath, depName
 		return res, ""
 	}
 
-	metrics, err := collectMetrics(extractDir)
+	metrics, ghRepo, err := collectMetrics(extractDir)
 	if err != nil {
 		_ = os.RemoveAll(tmpRoot)
 		res.Error = err.Error()
 		return res, ""
 	}
+
+	applyGitHubNativeLanguageHint(ctx, c, ghRepo, &metrics)
 
 	norm := engine.ComputeNormalized(metrics)
 	res.Normalized = norm
