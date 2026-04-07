@@ -35,6 +35,7 @@ async function ensureBinaryExecutable(targetPath) {
 function runBinary(targetPath) {
   const child = spawn(targetPath, process.argv.slice(2), {
     stdio: "inherit",
+    cwd: process.cwd(),
   });
   child.on("exit", (code) => process.exit(code ?? 1));
 }

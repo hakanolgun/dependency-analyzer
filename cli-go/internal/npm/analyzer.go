@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/cliui"
 	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/engine"
 )
 
@@ -67,26 +68,31 @@ func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.Projec
 	names := sortedKeys(merged)
 	_, hasReactNative := merged["react-native"]
 
+	cliui.Step("Scanning node_modules and analyzing dependency code (volume, API surface, complexity)...")
+
 	ctx := context.Background()
-	results := make([]engine.DependencyResult, 0, len(names))
-	total := 0
+	results := make([]engine.DependencyResult, len(names))
 	failures := 0
 
-	for _, name := range names {
+	for i, name := range names {
 		version := merged[name]
 		result := analyzeDependency(projectPath, name, version)
 		if result.Error == "" {
-			total += result.Score
 			result.Confidence = "high"
 		} else {
 			failures++
 			result.Confidence = "low"
 		}
+		results[i] = result
+	}
 
-		if reg != nil {
+	if reg != nil {
+		cliui.Step("Fetching package metadata from the npm registry...")
+		for i, name := range names {
+			result := &results[i]
 			meta, err := reg.FetchRegistryMeta(ctx, name, hasReactNative)
 			if err == nil {
-				applyRegistryMeta(&result, meta, hasReactNative)
+				applyRegistryMeta(result, meta, hasReactNative)
 				if result.Error != "" {
 					result.Confidence = "medium"
 				}
@@ -94,8 +100,6 @@ func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.Projec
 				result.Confidence = "low"
 			}
 		}
-
-		results = append(results, result)
 	}
 
 	scanned := len(results) - failures

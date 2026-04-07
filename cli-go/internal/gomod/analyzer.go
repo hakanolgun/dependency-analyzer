@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/cliui"
 	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/engine"
 )
 
@@ -69,6 +70,8 @@ func AnalyzeProjectWithClient(projectPath string, client *Client) (*engine.GoPro
 	if len(parsed.Dependencies) == 0 {
 		return nil, fmt.Errorf("no direct dependencies found in go.mod")
 	}
+
+	cliui.Step("Fetching module sources from the Go proxy and analyzing replaceability...")
 
 	ctx := context.Background()
 	results := make([]engine.GoModuleResult, 0, len(parsed.Dependencies))
