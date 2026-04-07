@@ -113,3 +113,63 @@ func TestMergeDevDependencies(t *testing.T) {
 		t.Fatalf("merge overwrite or keys: %+v", report.Dependencies)
 	}
 }
+
+func TestAnalyzeProjectSymlinkedNodeModules(t *testing.T) {
+	root := t.TempDir()
+	store := filepath.Join(root, ".pnpm-store", "pkg-a")
+	if err := os.MkdirAll(store, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	rootPkg := `{
+  "name": "fixture",
+  "dependencies": { "pkg-a": "^1.0.0" }
+}`
+	if err := os.WriteFile(filepath.Join(root, "package.json"), []byte(rootPkg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	nm := filepath.Join(root, "node_modules")
+	if err := os.MkdirAll(nm, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(nm, "pkg-a")
+	if err := os.Symlink(store, link); err != nil {
+		t.Fatal(err)
+	}
+	depPkg := `{"name":"pkg-a","version":"1.0.0","dependencies":{},"peerDependencies":{}}`
+	if err := os.WriteFile(filepath.Join(store, "package.json"), []byte(depPkg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(store, "index.js"), []byte("export const x = 1;\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	report, err := AnalyzeProjectWithRegistry(root, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.ScannedCount != 1 {
+		t.Fatalf("ScannedCount=%d", report.ScannedCount)
+	}
+	if report.Dependencies[0].Error != "" {
+		t.Fatal(report.Dependencies[0].Error)
+	}
+}
+
+func TestAnalyzeProjectNoGhostMissingNodeModules(t *testing.T) {
+	root := t.TempDir()
+	rootPkg := `{"name":"x","dependencies":{"missing-pkg":"1.0.0"}}`
+	if err := os.WriteFile(filepath.Join(root, "package.json"), []byte(rootPkg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	opts := AnalyzeOptions{AllowGhost: false}
+	report, err := AnalyzeProjectWithRegistryOpts(root, nil, opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Dependencies) != 1 {
+		t.Fatalf("deps %d", len(report.Dependencies))
+	}
+	if report.Dependencies[0].Error == "" {
+		t.Fatal("expected error when node_modules missing and --no-ghost")
+	}
+}

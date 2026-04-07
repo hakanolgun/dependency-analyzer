@@ -16,10 +16,12 @@ import (
 
 func main() {
 	var (
-		projectPath = flag.String("project", "", "project path to scan (default: first positional arg, else .)")
-		openReport  = flag.Bool("open", true, "open report in browser after generation")
-		jsonOut     = flag.Bool("json", false, "print JSON summary to stdout")
-		ecosystem   = flag.String("ecosystem", "", "force ecosystem: npm or go (auto-detected if empty)")
+		projectPath  = flag.String("project", "", "project path to scan (default: first positional arg, else .)")
+		openReport   = flag.Bool("open", true, "open report in browser after generation")
+		jsonOut      = flag.Bool("json", false, "print JSON summary to stdout")
+		ecosystem    = flag.String("ecosystem", "", "force ecosystem: npm or go (auto-detected if empty)")
+		noGhost      = flag.Bool("no-ghost", false, "do not fetch package tarballs when node_modules is missing")
+		noRegistry   = flag.Bool("no-registry", false, "skip npm registry metadata (downloads, maintenance, etc.)")
 	)
 	flag.Parse()
 
@@ -41,7 +43,7 @@ func main() {
 
 	switch eco {
 	case "npm":
-		runNpm(absProject, *openReport, *jsonOut)
+		runNpm(absProject, *openReport, *jsonOut, *noGhost, *noRegistry)
 	case "go":
 		runGo(absProject, *openReport, *jsonOut)
 	default:
@@ -84,9 +86,17 @@ func fileExists(path string) bool {
 	return err == nil && !info.IsDir()
 }
 
-func runNpm(absProject string, openReport, jsonOut bool) {
+func runNpm(absProject string, openReport, jsonOut, noGhost, noRegistry bool) {
 	cliui.Step("Reading package.json and resolving dependencies...")
-	projectReport, err := npm.AnalyzeProject(absProject)
+	opts := npm.DefaultAnalyzeOptions()
+	if noGhost {
+		opts.AllowGhost = false
+	}
+	var reg *npm.Client
+	if !noRegistry {
+		reg = npm.NewClient()
+	}
+	projectReport, err := npm.AnalyzeProjectWithRegistryOpts(absProject, reg, opts)
 	if err != nil {
 		exitErr("analysis failed", err)
 	}

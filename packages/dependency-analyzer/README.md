@@ -23,6 +23,20 @@ npm install -g @vinean/dependency-analyzer
 - `--ecosystem <type>`: Force ecosystem detection (`npm` or `go`). Auto-detected by default.
 - `--open=false`: Disable auto-opening the generated HTML report.
 - `--json`: Print the raw analysis summary (JSON) to stdout.
+- `--no-ghost` (**npm only**): Do not fetch package tarballs from the registry when `node_modules` is missing. Analysis uses only what is installed locally.
+- `--no-registry` (**npm only**): Skip npm registry metadata (weekly downloads, maintenance heuristics, React Native directory). Does not disable tarball fetch for code analysis; use `--no-ghost` for that.
+
+### NPM: local install first, registry fallback
+
+By default, dependencies are read from `node_modules` when present. If a direct dependency is missing on disk, the tool downloads its **exact** version from the registry (using `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, or a pinned version in `package.json`), analyzes the unpacked sources, and cleans up temp files per package.
+
+```bash
+# Air-gapped or CI: require a full local install
+npx @vinean/dependency-analyzer --no-ghost
+
+# Skip registry metadata but still allow tarball fetch for missing packages
+npx @vinean/dependency-analyzer --no-registry
+```
 
 ## 📊 Key Features
 

@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	nativeDirSignals  = []string{"ios", "android", "cpp"}
+	nativeDirSignals  = []string{"ios", "android", "cpp", "prebuilds"}
 	nativeFileSignals = []string{
 		".node", ".cpp", ".cc", ".c", ".h", ".hpp", ".m", ".mm", ".swift", ".kt", ".java",
 		".wasm", ".rs",
@@ -43,13 +43,29 @@ type depPackageJSON struct {
 	PeerDependencies map[string]string `json:"peerDependencies"`
 }
 
+// AnalyzeOptions configures npm project analysis.
+type AnalyzeOptions struct {
+	// AllowGhost fetches package tarballs from the registry when node_modules is missing (requires network).
+	AllowGhost bool
+}
+
+// DefaultAnalyzeOptions returns options used by AnalyzeProject and AnalyzeProjectWithRegistry.
+func DefaultAnalyzeOptions() AnalyzeOptions {
+	return AnalyzeOptions{AllowGhost: true}
+}
+
 // AnalyzeProject runs a local DRSE scan and enriches rows with npm registry metadata (requires network).
 func AnalyzeProject(projectPath string) (*engine.ProjectReport, error) {
-	return AnalyzeProjectWithRegistry(projectPath, NewClient())
+	return AnalyzeProjectWithRegistryOpts(projectPath, NewClient(), DefaultAnalyzeOptions())
 }
 
 // AnalyzeProjectWithRegistry allows tests to pass nil registry to skip network calls.
 func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.ProjectReport, error) {
+	return AnalyzeProjectWithRegistryOpts(projectPath, reg, DefaultAnalyzeOptions())
+}
+
+// AnalyzeProjectWithRegistryOpts runs analysis with optional registry enrichment and ghost fallback.
+func AnalyzeProjectWithRegistryOpts(projectPath string, reg *Client, opts AnalyzeOptions) (*engine.ProjectReport, error) {
 	pkgPath := filepath.Join(projectPath, "package.json")
 	data, err := os.ReadFile(pkgPath)
 	if err != nil {
@@ -69,15 +85,34 @@ func AnalyzeProjectWithRegistry(projectPath string, reg *Client) (*engine.Projec
 	names := sortedKeys(merged)
 	_, hasReactNative := merged["react-native"]
 
-	cliui.Step("Scanning node_modules and analyzing dependency code (volume, API surface, complexity)...")
+	switch DetectInstallLayout(projectPath) {
+	case LayoutYarnPnP:
+		cliui.Step("Yarn PnP detected; using lockfile-resolved packages from the npm registry...")
+	case LayoutMissingNodeModules:
+		if opts.AllowGhost {
+			cliui.Step("node_modules missing; fetching packages from the npm registry (lockfile or exact versions)...")
+		} else {
+			cliui.Step("Scanning dependencies (--no-ghost: local node_modules only)...")
+		}
+	default:
+		cliui.Step("Scanning node_modules and analyzing dependency code (volume, API surface, complexity)...")
+	}
 
 	ctx := context.Background()
+	ghostClient := reg
+	if ghostClient == nil && opts.AllowGhost {
+		ghostClient = NewClient()
+	}
+
 	results := make([]engine.DependencyResult, len(names))
 	failures := 0
 
 	for i, name := range names {
 		version := merged[name]
-		result := analyzeDependency(projectPath, name, version)
+		result, tmpDir := analyzeDependencyWithOpts(ctx, projectPath, name, version, opts, ghostClient)
+		if tmpDir != "" {
+			_ = os.RemoveAll(tmpDir)
+		}
 		if result.Error != "" {
 			failures++
 		}
@@ -156,28 +191,52 @@ func applyRegistryMeta(res *engine.DependencyResult, meta RegistryMeta, hasRNRoo
 	}
 }
 
-func analyzeDependency(projectPath, depName, reqVersion string) engine.DependencyResult {
+func analyzeDependencyWithOpts(ctx context.Context, projectPath, depName, reqVersion string, opts AnalyzeOptions, ghostClient *Client) (engine.DependencyResult, string) {
 	res := engine.DependencyResult{Name: depName, Version: reqVersion}
+
+	if depPath, ok := resolveDependencyDir(projectPath, depName); ok {
+		metrics, err := collectMetrics(depPath)
+		if err != nil {
+			res.Error = err.Error()
+			return res, ""
+		}
+		norm := engine.ComputeNormalized(metrics)
+		res.Normalized = norm
+		res.Score = engine.ToPercentageScore(norm)
+		res.Label = engine.ScoreLabel(norm)
+		res.Metrics = metrics
+		return res, ""
+	}
+
+	if !opts.AllowGhost {
+		res.Error = "dependency directory missing in node_modules (install dependencies or omit --no-ghost)"
+		return res, ""
+	}
+	if ghostClient == nil {
+		res.Error = "dependency directory missing in node_modules and no HTTP client for registry fetch"
+		return res, ""
+	}
+
+	ghostRes, tmpRoot := analyzeDependencyGhost(ctx, ghostClient, projectPath, depName, reqVersion)
+	return ghostRes, tmpRoot
+}
+
+// resolveDependencyDir returns the on-disk directory for node_modules/<depName>.
+// It uses filepath.EvalSymlinks so pnpm’s symlinked packages resolve to the store layout.
+func resolveDependencyDir(projectPath, depName string) (string, bool) {
 	depPath := filepath.Join(projectPath, "node_modules", depName)
-
-	if _, err := os.Stat(depPath); err != nil {
-		res.Error = "dependency directory missing in node_modules"
-		return res
+	if _, err := os.Lstat(depPath); err != nil {
+		return "", false
 	}
-
-	metrics, err := collectMetrics(depPath)
+	real, err := filepath.EvalSymlinks(depPath)
 	if err != nil {
-		res.Error = err.Error()
-		return res
+		return "", false
 	}
-
-	norm := engine.ComputeNormalized(metrics)
-	res.Normalized = norm
-	res.Score = engine.ToPercentageScore(norm)
-	res.Label = engine.ScoreLabel(norm)
-	res.Metrics = metrics
-
-	return res
+	st, err := os.Stat(real)
+	if err != nil || !st.IsDir() {
+		return "", false
+	}
+	return real, true
 }
 
 func collectMetrics(depPath string) (engine.Metrics, error) {

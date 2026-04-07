@@ -1,6 +1,6 @@
 {
   "name": "@vinean/dependency-analyzer",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Dependency Analyzer for npm and go packages with replaceability analysis",
   "type": "module",
   "bin": {
@@ -15,7 +15,7 @@
     "build:binaries": "node ./scripts/build-binaries.mjs",
     "prepublishOnly": "npm run build:binaries"
   },
-  "author": "Hakan Olgun <hakan@vinean.com>",
+  "author": "Hakan Olgun <hakanolgun@tutamail.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hakanolgun/dependency-analyzer.git",
@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/hakanolgun/dependency-analyzer/issues"
   },
-  "homepage": "https://github.com/hakanolgun/dependency-analyzer/tree/main/packages/dependency-analyzer#readme",
+  "homepage": "https://hakanolgun.github.io/dependency-analyzer",
   "keywords": [
     "dependency",
     "analyzer",
@@ -32,7 +32,6 @@
     "replaceability",
     "npm",
     "go",
-    "security",
     "cli",
     "scan"
   ],

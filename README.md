@@ -48,7 +48,7 @@ A proxy for cognitive complexity.
 
 | Ecosystem         | Detected File  | Analysis Level                               |
 | :---------------- | :------------- | :------------------------------------------- |
-| **NPM / Node.js** | `package.json` | Deep `node_modules` scan + Registry metadata |
+| **NPM / Node.js** | `package.json` | Local `node_modules` scan first; optional tarball fetch + registry metadata |
 | **Go Modules**    | `go.mod`       | Proxy zip download + Source code parsing     |
 
 ---
@@ -79,6 +79,28 @@ npx @vinean/dependency-analyzer --project ./my-cool-app --open=false
 
 # Output raw JSON summary to stdout
 npx @vinean/dependency-analyzer --json
+```
+
+### NPM analysis (local install vs. registry)
+
+For JavaScript projects the CLI **prefers an existing install**: it reads each direct dependency from `node_modules` (including pnpm-style symlinks, which are resolved before scanning).
+
+If a package is **not** on disk (no install, Yarn Plug’n’Play without `node_modules`, and so on), it can **fetch that package’s tarball from the npm registry**, extract it to a temporary directory, run the same code metrics, then delete the temp folder. Resolved versions come from, in order: `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` (classic), or an **exact** version string in `package.json` (ranges like `^1.0.0` are not enough without a lockfile).
+
+| Flag | Effect |
+| :--- | :----- |
+| `--no-ghost` | Do not download tarballs; only analyze what is present under `node_modules`. Useful for air-gapped CI or strict “no fetch” policies. |
+| `--no-registry` | Skip npm registry **metadata** (downloads, maintenance hints, React Native directory, etc.). Code analysis still runs; ghost tarball fetch still runs when needed unless `--no-ghost` is set. |
+
+```bash
+# Fail if dependencies are not installed (no network tarball fetch)
+npx @vinean/dependency-analyzer --no-ghost
+
+# Analyze from disk / tarballs only; no registry API calls
+npx @vinean/dependency-analyzer --no-registry
+
+# Combine both: strictly local node_modules, no registry calls
+npx @vinean/dependency-analyzer --no-ghost --no-registry
 ```
 
 ---
