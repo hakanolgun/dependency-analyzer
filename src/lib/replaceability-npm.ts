@@ -8,7 +8,17 @@ const WEIGHTS = {
 
 const MIN_VOLUME_BYTES = 100 * 1024;
 const MAX_VOLUME_BYTES = 10 * 1024 * 1024;
-const NATIVE_FILE_EXTENSIONS = [".cpp", ".h", ".cc", ".swift", ".kt", ".java", ".node"];
+const NATIVE_FILE_EXTENSIONS = [
+  ".cpp",
+  ".h",
+  ".cc",
+  ".swift",
+  ".kt",
+  ".java",
+  ".node",
+  ".wasm",
+  ".rs",
+];
 const LOGIC_KEYWORDS = /\b(if|else|switch|map|filter|reduce|catch|async)\b/g;
 const EXPORT_PATTERN = /export\s+(const|function|class|interface|type)\b/g;
 const BLACK_MAGIC_PATTERN = /(eval\s*\(|new\s+Function\s*\(|Buffer\.from\s*\()/g;

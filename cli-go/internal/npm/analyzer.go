@@ -18,6 +18,7 @@ var (
 	nativeDirSignals  = []string{"ios", "android", "cpp"}
 	nativeFileSignals = []string{
 		".node", ".cpp", ".cc", ".c", ".h", ".hpp", ".m", ".mm", ".swift", ".kt", ".java",
+		".wasm", ".rs",
 	}
 	jsExts = map[string]struct{}{
 		".js": {}, ".mjs": {}, ".cjs": {}, ".ts": {}, ".tsx": {},
@@ -248,6 +249,10 @@ func collectMetrics(depPath string) (engine.Metrics, error) {
 				hasNativeSignals = true
 				break
 			}
+		}
+
+		if !hasNativeSignals && isPackageBinEntry(depPath, path) && fileLooksLikeNativeExecutable(path) {
+			hasNativeSignals = true
 		}
 
 		if _, ok := jsExts[ext]; !ok {
