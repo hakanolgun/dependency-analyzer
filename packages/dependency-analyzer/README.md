@@ -1,6 +1,6 @@
 # 🛡️ @vinean/dependency-analyzer
 
-A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of your project's dependencies. Supports both **NPM** and **Go Modules**.
+A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of your project's dependencies. Supports both **NPM packages** and **Go Modules**.
 
 ## 🚀 Usage
 
@@ -28,7 +28,7 @@ npm install -g @vinean/dependency-analyzer
 
 ### 1. Replaceability Score (0-100)
 
-`@vinean/dependency-analyzer` deep-dives into your project's source code to calculate how difficult it would be to replace a dependency.
+`@vinean/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
 
 - **Easy (0-30)**: Minimal logic, easy to replace or implement yourself.
 - **Medium (31-70)**: Moderate complexity and coupling.
