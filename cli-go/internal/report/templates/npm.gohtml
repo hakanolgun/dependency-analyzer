@@ -34,8 +34,6 @@
                 <th data-col="name" class="sortable">
                   Package Name <span class="sort-icon" data-for="name"></span>
                 </th>
-                <th>Your Version</th>
-                <th>Latest Version</th>
                 <th data-col="weeklyDownloads" class="sortable">
                   Weekly Downloads <span class="sort-icon" data-for="weeklyDownloads"></span>
                 </th>
@@ -53,6 +51,8 @@
                   New Arch Support <span class="sort-icon" data-for="newArchitecture"></span>
                 </th>
                 {{ end }}
+                <th>Your Version</th>
+                <th>Latest Version</th>
               </tr>
             </thead>
             <tbody id="results-body">
@@ -69,10 +69,6 @@
                   {{ if .PackageErr }}
                     <span class="pkg-err">{{ .PackageErr }}</span>
                   {{ end }}
-                </td>
-                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
-                <td>
-                  {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>
                 <td>{{ .WeeklyDownloads }}</td>
                 <td>
@@ -94,10 +90,12 @@
                 </td>
                 <td class="cell-replace">
                   {{ if .ReplaceShow }}
-                    <div class="replace-stack">
-                      <span class="badge {{ .RepLabelClass }}">{{ .RepLabel }}</span>
-                      <span class="sub">{{ .Score }}/100</span>
-                    </div>
+                    <a href="#replaceability-section" class="replace-notes-link">
+                      <div class="replace-stack">
+                        <span class="badge {{ .RepLabelClass }}">{{ .RepLabel }}</span>
+                        <span class="sub">{{ .Score }}/100</span>
+                      </div>
+                    </a>
                   {{ else }}
                     <span class="muted">-</span>
                   {{ end }}
@@ -107,6 +105,10 @@
                   {{ if eq .NewArchCell "ok" }}<span class="na-yes">Yes</span>{{ else if eq .NewArchCell "no" }}<span class="na-no">No</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>
                 {{ end }}
+                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
+                <td>
+                  {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
+                </td>
               </tr>
             {{ end }}
             </tbody>

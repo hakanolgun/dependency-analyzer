@@ -19,12 +19,7 @@ interface GoResultsTableProps {
 
 type SortKey = "lastUpdateDate" | "isMaintained" | null;
 
-export function GoResultsTable({
-  results,
-  isAnalyzing,
-  progress,
-  onReset,
-}: GoResultsTableProps) {
+export function GoResultsTable({ results, isAnalyzing, progress, onReset }: GoResultsTableProps) {
   const [sortKey, setSortKey] = React.useState<SortKey>(null);
   const [sortDirection, setSortDirection] = React.useState<"asc" | "desc">("desc");
 
@@ -132,10 +127,7 @@ export function GoResultsTable({
             style={{ background: "rgba(255,255,255,0.1)" }}>
             <Download size={18} /> Export JSON
           </button>
-          <button
-            className="btn"
-            onClick={onReset}
-            style={{ background: "rgba(255,255,255,0.1)" }}>
+          <button className="btn" onClick={onReset} style={{ background: "rgba(255,255,255,0.1)" }}>
             <RefreshCw size={18} /> Analyze Another
           </button>
         </div>
@@ -168,12 +160,8 @@ export function GoResultsTable({
                 onClick={() => setSortKey(null)}
                 style={{ cursor: "pointer", userSelect: "none" }}
                 title="Click to reset to original go.mod order">
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  Module Name
-                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>Module Name</div>
               </th>
-              <th>Your Version</th>
-              <th>Latest Version</th>
               <th
                 onClick={() => handleSort("lastUpdateDate")}
                 style={{ cursor: "pointer", userSelect: "none" }}>
@@ -189,6 +177,8 @@ export function GoResultsTable({
                 </div>
               </th>
               <th>Replaceability</th>
+              <th>Your Version</th>
+              <th>Latest Version</th>
             </tr>
           </thead>
           <tbody>
@@ -225,6 +215,30 @@ export function GoResultsTable({
                   )}
                 </td>
                 <td>
+                  {mod.status === "loading" ? (
+                    "-"
+                  ) : mod.timeSinceLastUpdate ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span>{mod.timeSinceLastUpdate}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        {new Date(mod.lastUpdateDate!).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td>{mod.status === "loading" ? "-" : renderMaintainedStatus(mod.isMaintained)}</td>
+                <td>
+                  {mod.status === "loading" ? (
+                    "-"
+                  ) : (
+                    <a href="#replaceability-section" className="replace-notes-link">
+                      See notes below
+                    </a>
+                  )}
+                </td>
+                <td>
                   <span className="badge gray">{mod.currentVersion}</span>
                 </td>
                 <td>
@@ -248,26 +262,6 @@ export function GoResultsTable({
                   ) : (
                     "-"
                   )}
-                </td>
-                <td>
-                  {mod.status === "loading" ? (
-                    "-"
-                  ) : mod.timeSinceLastUpdate ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span>{mod.timeSinceLastUpdate}</span>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                        {new Date(mod.lastUpdateDate!).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td>
-                  {mod.status === "loading" ? "-" : renderMaintainedStatus(mod.isMaintained)}
-                </td>
-                <td>
-                  {mod.status === "loading" ? "-" : <span>See notes below</span>}
                 </td>
               </tr>
             ))}

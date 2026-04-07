@@ -179,10 +179,7 @@ export function NpmResultsTable({
             style={{ background: "rgba(255,255,255,0.1)" }}>
             <Download size={18} /> Export JSON
           </button>
-          <button
-            className="btn"
-            onClick={onReset}
-            style={{ background: "rgba(255,255,255,0.1)" }}>
+          <button className="btn" onClick={onReset} style={{ background: "rgba(255,255,255,0.1)" }}>
             <RefreshCw size={18} /> Analyze Another
           </button>
         </div>
@@ -219,8 +216,6 @@ export function NpmResultsTable({
                   Package Name
                 </div>
               </th>
-              <th>Your Version</th>
-              <th>Latest Version</th>
               <th
                 onClick={() => handleSort("weeklyDownloads")}
                 style={{ cursor: "pointer", userSelect: "none" }}>
@@ -252,6 +247,8 @@ export function NpmResultsTable({
                   </div>
                 </th>
               )}
+              <th>Your Version</th>
+              <th>Latest Version</th>
             </tr>
           </thead>
           <tbody>
@@ -288,9 +285,47 @@ export function NpmResultsTable({
                   )}
                 </td>
                 <td>
-                  <span className="badge gray">
-                    {pkg.currentVersion.replace(/[\^~]/, "")}
-                  </span>
+                  {pkg.status === "loading" ? "-" : formatWeeklyDownloads(pkg.weeklyDownloads)}
+                </td>
+                <td>
+                  {pkg.status === "loading" ? (
+                    "-"
+                  ) : pkg.timeSinceLastUpdate ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span>{pkg.timeSinceLastUpdate}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        {new Date(pkg.lastUpdateDate!).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ) : (
+                    "-"
+                  )}
+                </td>
+                <td>{pkg.status === "loading" ? "-" : renderMaintainedStatus(pkg.isMaintained)}</td>
+                <td>
+                  {pkg.status === "loading" ? (
+                    "-"
+                  ) : (
+                    <a href="#replaceability-section" className="replace-notes-link">
+                      See notes below
+                    </a>
+                  )}
+                </td>
+                {hasReactNative && (
+                  <td>
+                    {pkg.newArchitecture !== undefined ? (
+                      pkg.newArchitecture ? (
+                        <CheckCircle2 size={20} color="var(--success)" />
+                      ) : (
+                        <XCircle size={20} color="var(--danger)" />
+                      )
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                )}
+                <td>
+                  <span className="badge gray">{pkg.currentVersion.replace(/[\^~]/, "")}</span>
                 </td>
                 <td>
                   {pkg.status === "loading" ? (
@@ -311,47 +346,6 @@ export function NpmResultsTable({
                     "-"
                   )}
                 </td>
-                <td>
-                  {pkg.status === "loading"
-                    ? "-"
-                    : formatWeeklyDownloads(pkg.weeklyDownloads)}
-                </td>
-                <td>
-                  {pkg.status === "loading" ? (
-                    "-"
-                  ) : pkg.timeSinceLastUpdate ? (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span>{pkg.timeSinceLastUpdate}</span>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                        {new Date(pkg.lastUpdateDate!).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td>
-                  {pkg.status === "loading" ? "-" : renderMaintainedStatus(pkg.isMaintained)}
-                </td>
-                <td>
-                  {pkg.status === "loading"
-                    ? "-"
-                    : <span> See notes below </span> 
-                    }
-                </td>
-                {hasReactNative && (
-                  <td>
-                    {pkg.newArchitecture !== undefined ? (
-                      pkg.newArchitecture ? (
-                        <CheckCircle2 size={20} color="var(--success)" />
-                      ) : (
-                        <XCircle size={20} color="var(--danger)" />
-                      )
-                    ) : (
-                      "-"
-                    )}
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>

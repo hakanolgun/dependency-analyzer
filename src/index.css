@@ -319,6 +319,22 @@
 }
 
 /* SPA legend polish (grid/titles from shared report.css) */
+#replaceability-section {
+  scroll-margin-top: 2rem;
+}
+.replace-notes-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.45);
+}
+.replace-notes-link:hover {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+html {
+  scroll-behavior: smooth;
+}
 .maintenance-legend-section {
   margin-top: 1rem;
 }

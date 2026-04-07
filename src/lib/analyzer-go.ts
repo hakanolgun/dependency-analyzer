@@ -148,12 +148,13 @@ export async function fetchGoModuleData(
       result.repoUrl = latestData.Origin.URL;
     }
 
-    // Maintained heuristic: same 2-year rule as npm
+    // Maintained heuristic: Go modules use 3 years (npm uses 2).
     if (latestData.Time) {
       const lastUpdated = new Date(latestData.Time).getTime();
-      const twoYearsAgo = Date.now() - 63072000000; // 2 years in ms
+      const threeYearsMs = 3 * 365 * 24 * 60 * 60 * 1000;
+      const threshold = Date.now() - threeYearsMs;
 
-      if (lastUpdated < twoYearsAgo) {
+      if (lastUpdated < threshold) {
         result.isMaintained = "unlikely";
       } else {
         result.isMaintained = "yes";

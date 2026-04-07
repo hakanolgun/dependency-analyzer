@@ -1,10 +1,19 @@
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 
-export function MaintenanceLegend() {
+type MaintenanceEcosystem = "npm" | "go";
+
+type MaintenanceLegendProps = {
+  ecosystem: MaintenanceEcosystem;
+};
+
+export function MaintenanceLegend({ ecosystem }: MaintenanceLegendProps) {
+  const unit = ecosystem === "go" ? "module" : "package";
+  const unlikelyYears = ecosystem === "go" ? 3 : 2;
+
   return (
     <div className="maintenance-legend-section">
       <div className="legend-container">
-        <h3 className="legend-title">Maintenance Status Key</h3>
+        <h3 className="legend-title">Maintenance Status</h3>
         <div className="legend-grid">
           <div className="legend-item">
             <div className="legend-badge badge-yes">
@@ -12,27 +21,27 @@ export function MaintenanceLegend() {
               <span>Yes</span>
             </div>
             <p className="legend-description">
-              The package is active, has recent updates, and is not officially deprecated.
+              The {unit} is active, has recent updates, and is not officially deprecated.
             </p>
           </div>
-          
+
           <div className="legend-item">
             <div className="legend-badge badge-unlikely">
               <AlertTriangle size={16} />
               <span>Unlikely</span>
             </div>
             <p className="legend-description">
-              No updates in the last 2 years. The package might be abandoned.
+              No updates in the last {unlikelyYears} years. The {unit} might be abandoned.
             </p>
           </div>
-          
+
           <div className="legend-item">
             <div className="legend-badge badge-no">
               <XCircle size={16} />
               <span>No</span>
             </div>
             <p className="legend-description">
-              Explicitly marked as deprecated on NPM or marked as unmaintained by the community.
+              Explicitly marked as deprecated or marked as unmaintained by the community.
             </p>
           </div>
         </div>

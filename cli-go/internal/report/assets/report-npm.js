@@ -69,10 +69,11 @@
     else if (score >= 31) { label = 'Medium'; cls = 'warning'; }
     else                  { label = 'Easy';   cls = 'success'; }
 
-    return '<div class="replace-stack">' +
+    return '<a href="#replaceability-section" class="replace-notes-link">' +
+      '<div class="replace-stack">' +
       '<span class="badge ' + cls + '">' + label + '</span>' +
       '<span class="sub">' + score + '/100</span>' +
-      '</div>';
+      '</div></a>';
   }
 
   function newArchCell(dep) {
@@ -126,13 +127,13 @@
 
       return '<tr>' +
         '<td><div class="pkg-name">' + namecell + '</div>' + errCell + '</td>' +
-        '<td><span class="badge gray">' + escapeHTML(dep.version.replace(/[\^~]/,'')) + '</span></td>' +
-        '<td>' + latestCell + '</td>' +
         '<td>' + formatDownloads(dep.weeklyDownloads) + '</td>' +
         '<td>' + formatDate(dep) + '</td>' +
         '<td>' + maintainedBadge(dep.isMaintained) + '</td>' +
         '<td class="cell-replace">' + replaceabilityCell(dep) + '</td>' +
         rnCell +
+        '<td><span class="badge gray">' + escapeHTML(dep.version.replace(/[\^~]/,'')) + '</span></td>' +
+        '<td>' + latestCell + '</td>' +
         '</tr>';
     });
     document.getElementById('results-body').innerHTML = rows.join('');

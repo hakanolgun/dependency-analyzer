@@ -106,8 +106,8 @@ func (c *Client) FetchModuleMeta(ctx context.Context, modulePath string) (Module
 		out.LastUpdateDate = data.Time
 		if ts, err := time.Parse(time.RFC3339Nano, data.Time); err == nil {
 			out.TimeSinceLastUpdate = formatTimeSince(ts, time.Now())
-			twoYears := 2 * 365 * 24 * time.Hour
-			if time.Since(ts) > twoYears {
+			threeYears := 3 * 365 * 24 * time.Hour
+			if time.Since(ts) > threeYears {
 				out.IsMaintained = "unlikely"
 			} else {
 				out.IsMaintained = "yes"

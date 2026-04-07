@@ -1,16 +1,17 @@
 import { Circle, TriangleAlert, OctagonX } from "lucide-react";
 import { CopyCommand, npxCommand } from "./CopyCommand";
 
-
 export function ReplaceabilityLegend() {
   return (
     <div className="maintenance-legend-section">
       <div className="legend-container">
-        <h3 className="legend-title">Replaceability Score</h3>
+        <h3 id="replaceability-section" className="legend-title">
+          Replaceability Cost
+        </h3>
         <p className="cli-command-description">
-          Replaceability Score measures how difficult it would be to replace a particular dependency
-          in your project. A higher score indicates that removing or replacing the dependency would
-          require significant effort and could introduce risk.
+          Replaceability measures how difficult it would be to replace a particular dependency in
+          your project. Low scores mean you may consider replacing the dependency with your own
+          implementation.
         </p>
         <p className="cli-command-description">
           Replaceability ≠ Complexity. Replaceability ⊇ Complexity.
@@ -51,12 +52,8 @@ export function ReplaceabilityLegend() {
         <div className="cli-command-wrapper">
           <h4 className="legend-title">How to use?</h4>
           <p className="cli-command-description">
-            Run the npx command below to analyze your project's dependencies. A detailed HTML report
-            will automatically open in your browser upon completion.
-          </p>
-          <p className="cli-command-description">
-            Look for packages with low maintenance or high replaceability scores. These are your
-            primary targets for potential replacement.
+            Look for unmaintained packages with easy replaceability scores. These are your primary
+            targets for potential replacement.
           </p>
 
           <CopyCommand command={npxCommand} />

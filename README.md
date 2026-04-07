@@ -8,7 +8,7 @@ Available as both a **high-performance Go CLI** and a **modern React Web Interfa
 
 ## 🚀 Key Pillars of Replaceability
 
-Dependency Analyzer evaluates every dependency across five critical metrics to generate a normalized **Replaceability Score (0-100)**. A higher score indicates a dependency that is more "locked-in" and costly to replace.
+Dependency Analyzer evaluates every dependency across five critical metrics to generate a normalized **Replaceability Cost (0-100)**. A higher score indicates a dependency that is more "locked-in" and costly to replace.
 
 ### 1. 🏗️ Native Presence (40%)
 
@@ -46,10 +46,10 @@ A proxy for cognitive complexity.
 
 ## 🛠️ Supported Ecosystems
 
-| Ecosystem         | Detected File  | Analysis Level                               |
-| :---------------- | :------------- | :------------------------------------------- |
+| Ecosystem         | Detected File  | Analysis Level                                                              |
+| :---------------- | :------------- | :-------------------------------------------------------------------------- |
 | **NPM / Node.js** | `package.json` | Local `node_modules` scan first; optional tarball fetch + registry metadata |
-| **Go Modules**    | `go.mod`       | Proxy zip download + Source code parsing     |
+| **Go Modules**    | `go.mod`       | Proxy zip download + Source code parsing                                    |
 
 ---
 
@@ -87,9 +87,9 @@ For JavaScript projects the CLI **prefers an existing install**: it reads each d
 
 If a package is **not** on disk (no install, Yarn Plug’n’Play without `node_modules`, and so on), it can **fetch that package’s tarball from the npm registry**, extract it to a temporary directory, run the same code metrics, then delete the temp folder. Resolved versions come from, in order: `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` (classic), or an **exact** version string in `package.json` (ranges like `^1.0.0` are not enough without a lockfile).
 
-| Flag | Effect |
-| :--- | :----- |
-| `--no-ghost` | Do not download tarballs; only analyze what is present under `node_modules`. Useful for air-gapped CI or strict “no fetch” policies. |
+| Flag            | Effect                                                                                                                                                                                        |
+| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--no-ghost`    | Do not download tarballs; only analyze what is present under `node_modules`. Useful for air-gapped CI or strict “no fetch” policies.                                                          |
 | `--no-registry` | Skip npm registry **metadata** (downloads, maintenance hints, React Native directory, etc.). Code analysis still runs; ghost tarball fetch still runs when needed unless `--no-ghost` is set. |
 
 ```bash
@@ -109,7 +109,7 @@ npx @vinean/dependency-analyzer --no-ghost --no-registry
 
 Dependency Analyzer includes a premium dashboard for exploring analysis results visually.
 
-- **Interactive Sorting**: Sort by download count, last update, or replaceability score.
+- **Interactive Sorting**: Sort by download count, last update, or replaceability cost.
 - **Maintained Status**: Smart heuristics (`yes`, `unlikely`, `no`) based on recent update history.
 - **Ecosystem Switching**: Toggle between JavaScript and Go results.
 - **JSON Export**: Export the full analysis report for further processing.

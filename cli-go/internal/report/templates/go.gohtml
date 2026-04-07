@@ -34,8 +34,6 @@
                 <th data-col="name" class="sortable">
                   Module Name <span class="sort-icon" data-for="name"></span>
                 </th>
-                <th>Your Version</th>
-                <th>Latest Version</th>
                 <th data-col="lastUpdateDate" class="sortable">
                   Last Update <span class="sort-icon" data-for="lastUpdateDate"></span>
                 </th>
@@ -45,6 +43,8 @@
                 <th data-col="score" class="sortable">
                   Replaceability <span class="sort-icon" data-for="score"></span>
                 </th>
+                <th>Your Version</th>
+                <th>Latest Version</th>
               </tr>
             </thead>
             <tbody id="results-body">
@@ -61,10 +61,6 @@
                   {{ if .ModuleErr }}
                     <span class="pkg-err">{{ .ModuleErr }}</span>
                   {{ end }}
-                </td>
-                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
-                <td>
-                  {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>
                 <td>
                   {{ if .ShowLast }}
@@ -85,13 +81,19 @@
                 </td>
                 <td class="cell-replace">
                   {{ if .ReplaceShow }}
-                    <div class="replace-stack">
-                      <span class="badge {{ .RepLabelClass }}">{{ .RepLabel }}</span>
-                      <span class="sub">{{ .Score }}/100</span>
-                    </div>
+                    <a href="#replaceability-section" class="replace-notes-link">
+                      <div class="replace-stack">
+                        <span class="badge {{ .RepLabelClass }}">{{ .RepLabel }}</span>
+                        <span class="sub">{{ .Score }}/100</span>
+                      </div>
+                    </a>
                   {{ else }}
                     <span class="muted">-</span>
                   {{ end }}
+                </td>
+                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
+                <td>
+                  {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>
               </tr>
             {{ end }}

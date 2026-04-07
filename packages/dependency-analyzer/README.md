@@ -40,7 +40,7 @@ npx @vinean/dependency-analyzer --no-registry
 
 ## 📊 Key Features
 
-### 1. Replaceability Score (0-100)
+### 1. Replaceability Cost (0-100)
 
 `@vinean/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
 

@@ -221,10 +221,12 @@ function App() {
             <HomeTitle />
 
             <p className="or-divider">
-              Run this command in your project directory to produce complete report
+              Run this in your project directory to get a complete report
             </p>
             <CopyCommand command={npxCommand} />
-            <div className="or-divider">— OR TO GET A BASIC REPORT WITHOUT ANALYSIS —</div>
+            <p style={{ paddingBlock: "2rem" }} className="or-divider">
+              — or to get a basic report without analysis —
+            </p>
 
             <label
               className={`upload-area ${dragActive ? "drag-active" : ""}`}
@@ -247,7 +249,7 @@ function App() {
             </label>
 
             <div className="text-area-container">
-              <div className="or-divider">— OR —</div>
+              <p className="or-divider">— or —</p>
               <textarea
                 className="json-input"
                 placeholder={placeholder}
@@ -304,7 +306,7 @@ function App() {
         )}
       </div>
 
-      <MaintenanceLegend />
+      <MaintenanceLegend ecosystem={ecosystem} />
       <ReplaceabilityLegend />
 
       <Footer />

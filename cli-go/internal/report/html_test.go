@@ -55,8 +55,8 @@ func TestGenerateHTML(t *testing.T) {
 		"Maintained",
 		"Replaceability",
 		"New Arch Support",
-		"Maintenance Status Key",
-		"Replaceability Score",
+		"Maintenance Status",
+		"Replaceability",
 	} {
 		if !strings.Contains(s, needle) {
 			t.Fatalf("report missing %q", needle)
