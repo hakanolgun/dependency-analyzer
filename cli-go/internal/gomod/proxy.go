@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 	"unicode"
+	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/engine"
 )
 
 const (
@@ -116,7 +117,7 @@ func (c *Client) FetchModuleMeta(ctx context.Context, modulePath string) (Module
 	}
 
 	if data.Origin != nil && data.Origin.URL != "" {
-		out.RepoURL = data.Origin.URL
+		out.RepoURL = engine.NormalizeRepoURL(data.Origin.URL)
 	}
 
 	return out, nil

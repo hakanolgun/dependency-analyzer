@@ -9,6 +9,7 @@ import {
   Download,
 } from "lucide-react";
 import type { GoModuleResult } from "../lib/analyzer-go";
+import { normalizeRepoUrl } from "../lib/utils";
 
 interface GoResultsTableProps {
   results: GoModuleResult[];
@@ -189,7 +190,7 @@ export function GoResultsTable({ results, isAnalyzing, progress, onReset }: GoRe
                     <Package size={16} color="var(--go-color)" />
                     {mod.repoUrl ? (
                       <a
-                        href={mod.repoUrl}
+                        href={normalizeRepoUrl(mod.repoUrl)}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: "inherit", textDecoration: "none", wordBreak: "break-all" }}

@@ -11,6 +11,7 @@ import {
   Download,
 } from "lucide-react";
 import type { PackageResult } from "../lib/analyzer-js";
+import { normalizeRepoUrl } from "../lib/utils";
 
 interface NpmResultsTableProps {
   results: PackageResult[];
@@ -260,7 +261,7 @@ export function NpmResultsTable({
                     <FileJson size={16} color="var(--primary)" />
                     {pkg.repoUrl ? (
                       <a
-                        href={pkg.repoUrl}
+                        href={normalizeRepoUrl(pkg.repoUrl)}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: "inherit", textDecoration: "none", wordBreak: "break-all" }}

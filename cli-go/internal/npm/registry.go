@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"github.com/hakanolgun/dependency-analyzer/cli-go/internal/engine"
 )
 
 const (
@@ -168,10 +169,7 @@ func repoURLFromDoc(doc *npmRegistryDoc, name string) string {
 	} else {
 		return fmt.Sprintf("https://www.npmjs.com/package/%s", url.PathEscape(name))
 	}
-	raw = strings.TrimPrefix(raw, "git+")
-	raw = strings.TrimSuffix(raw, ".git")
-	raw = strings.ReplaceAll(raw, "git://", "https://")
-	return raw
+	return engine.NormalizeRepoURL(raw)
 }
 
 func (c *Client) fetchDownloadsThrottled(ctx context.Context, name string) (int, error) {
