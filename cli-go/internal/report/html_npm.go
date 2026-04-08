@@ -171,7 +171,17 @@ func formatDownloadCount(p *int) string {
 	if p == nil {
 		return "-"
 	}
-	return fmt.Sprintf("%d", *p)
+	n := *p
+	if n == 0 {
+		return "0"
+	}
+	s := fmt.Sprintf("%d", n)
+	var res []string
+	for i := len(s); i > 0; i -= 3 {
+		start := max(i - 3, 0)
+		res = append([]string{s[start:i]}, res...)
+	}
+	return strings.Join(res, " ")
 }
 
 func maintainedBadgeClass(m string) string {

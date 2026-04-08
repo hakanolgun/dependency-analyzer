@@ -158,7 +158,7 @@ export function GoResultsTable({ results, isAnalyzing, progress, onReset }: GoRe
             <tr>
               <th
                 onClick={() => setSortKey(null)}
-                style={{ cursor: "pointer", userSelect: "none" }}
+                style={{ cursor: "pointer", userSelect: "none", minWidth: "70px" }}
                 title="Click to reset to original go.mod order">
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>Module Name</div>
               </th>
@@ -184,7 +184,7 @@ export function GoResultsTable({ results, isAnalyzing, progress, onReset }: GoRe
           <tbody>
             {sortedResults.map((mod, idx) => (
               <tr key={`${mod.name}-${idx}`}>
-                <td>
+                <td style={{ minWidth: "70px" }}>
                   <div className="pkg-name">
                     <Package size={16} color="var(--go-color)" />
                     {mod.repoUrl ? (

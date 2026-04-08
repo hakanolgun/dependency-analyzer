@@ -80,7 +80,8 @@ export function NpmResultsTable({
 
   const formatWeeklyDownloads = (downloads?: number) => {
     if (downloads === undefined || downloads === null) return "-";
-    return String(downloads);
+
+    return downloads.toLocaleString("en-US").replace(/,/g, " ");
   };
 
   const sortedResults = React.useMemo(() => {
@@ -210,7 +211,7 @@ export function NpmResultsTable({
             <tr>
               <th
                 onClick={() => setSortKey(null)}
-                style={{ cursor: "pointer", userSelect: "none" }}
+                style={{ cursor: "pointer", userSelect: "none", minWidth: "70px" }}
                 title="Click to reset to original package.json order">
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   Package Name
@@ -218,7 +219,7 @@ export function NpmResultsTable({
               </th>
               <th
                 onClick={() => handleSort("weeklyDownloads")}
-                style={{ cursor: "pointer", userSelect: "none" }}>
+                style={{ cursor: "pointer", userSelect: "none", width: "45px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   Weekly Downloads {renderSortIcon("weeklyDownloads")}
                 </div>
@@ -254,7 +255,7 @@ export function NpmResultsTable({
           <tbody>
             {sortedResults.map((pkg, idx) => (
               <tr key={`${pkg.name}-${idx}`}>
-                <td>
+                <td style={{ minWidth: "70px" }}>
                   <div className="pkg-name">
                     <FileJson size={16} color="var(--primary)" />
                     {pkg.repoUrl ? (
@@ -284,7 +285,7 @@ export function NpmResultsTable({
                     </span>
                   )}
                 </td>
-                <td>
+                <td style={{ textAlign: "right", width: "45px", fontFamily: "ui-monospace" }}>
                   {pkg.status === "loading" ? "-" : formatWeeklyDownloads(pkg.weeklyDownloads)}
                 </td>
                 <td>

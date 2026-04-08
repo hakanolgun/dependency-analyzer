@@ -31,7 +31,7 @@
           <table id="results-table">
             <thead>
               <tr>
-                <th data-col="name" class="sortable">
+                <th data-col="name" class="sortable" style="min-width:70px;">
                   Module Name <span class="sort-icon" data-for="name"></span>
                 </th>
                 <th data-col="lastUpdateDate" class="sortable">
@@ -50,7 +50,7 @@
             <tbody id="results-body">
             {{ range .Rows }}
               <tr>
-                <td>
+                <td style="min-width:70px;">
                   <div class="pkg-name">
                     {{ if .RepoURL }}
                       <a href="{{ .RepoURL }}" target="_blank" rel="noreferrer" class="repo-link" title="{{ .RepoURL }}">{{ .Name }} <span class="ext">↗</span></a>
