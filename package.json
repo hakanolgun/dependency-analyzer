@@ -16,7 +16,8 @@
     "deploy": "gh-pages -d dist",
     "cli:build": "npm --workspace @vinean/dependency-analyzer run build:binaries",
     "cli:run": "node ./packages/dependency-analyzer/bin/dependency-analyzer.js",
-    "cli:test": "cd cli-go && go test ./..."
+    "cli:test": "cd cli-go && go test ./...",
+    "release": "cd packages/dependency-analyzer && npm publish && cd ../.."
   },
   "dependencies": {
     "lucide-react": "^1.7.0",
