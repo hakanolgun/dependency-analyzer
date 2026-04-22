@@ -47,31 +47,3 @@ type ProjectReport struct {
 	ReportOutPath  string             `json:"reportOutPath"`
 	HasReactNative bool               `json:"hasReactNative"`
 }
-
-// GoModuleResult holds analysis results for a single Go module dependency.
-type GoModuleResult struct {
-	Name              string  `json:"name"`
-	CurrentVersion    string  `json:"currentVersion"`
-	LatestVersion     string  `json:"latestVersion,omitempty"`
-	Normalized        float64 `json:"normalized"`
-	Score             int     `json:"score"`
-	Label             string  `json:"label"`
-	Metrics           Metrics `json:"metrics"`
-	LastUpdateDate    string  `json:"lastUpdateDate,omitempty"`
-	TimeSinceLastUpdate string `json:"timeSinceLastUpdate,omitempty"`
-	IsMaintained      string  `json:"isMaintained,omitempty"` // yes | unlikely | no
-	RepoURL           string  `json:"repoUrl,omitempty"`
-	Error             string  `json:"error,omitempty"`
-}
-
-// GoProjectReport bundles the results of a Go module analysis.
-type GoProjectReport struct {
-	ProjectPath   string           `json:"projectPath"`
-	ModuleName    string           `json:"moduleName"`
-	GoVersion     string           `json:"goVersion"`
-	Dependencies  []GoModuleResult `json:"dependencies"`
-	GeneratedAt   string           `json:"generatedAt"`
-	ScannedCount  int              `json:"scannedCount"`
-	FailedCount   int              `json:"failedCount"`
-	ReportOutPath string           `json:"reportOutPath"`
-}

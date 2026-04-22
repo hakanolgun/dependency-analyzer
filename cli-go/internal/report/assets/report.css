@@ -206,10 +206,6 @@ html {
 .badge.danger  { background: rgba(239,  68,  68, 0.2); color: #f87171; }
 .badge.info    { background: rgba(59,  130, 246, 0.2); color: #60a5fa; }
 .badge.gray    { background: rgba(148, 163, 184, 0.2); color: #94a3b8; }
-.badge.go {
-  background: rgba(0, 173, 216, 0.2);
-  color: #00add8;
-}
 /* ── Package name ── */
 .pkg-name {
   font-weight: 600;

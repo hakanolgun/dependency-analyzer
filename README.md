@@ -12,7 +12,7 @@ Dependency Analyzer evaluates every dependency across five critical metrics to g
 
 ### 1. 🏗️ Native Presence (40%)
 
-Detects native code signals (C++, `node-gyp`, `cgo`, `syscall`, `unsafe`). Native dependencies often require specific build environments and are significantly harder to port or replace with pure-logic alternatives.
+Detects native code signals (C++, `node-gyp`). Native dependencies often require specific build environments and are significantly harder to port or replace with pure-logic alternatives.
 
 ### 2. 📦 Code Volume (10%)
 
@@ -20,40 +20,33 @@ Analyzes the physical size and source lines of code (SLOC). While not a direct m
 
 ### 3. 🌐 API Surface (10%)
 
-Measures the breadth of the public interface.
-
-- **NPM**: Counts exports, classes, and methods.
-- **Go**: Evaluates exported functions, structs, interfaces, and anonymous nesting depth.
-- **Structural Penalty**: Higher nesting levels (Max Brace Depth) increase the score.
+Measures the breadth of the public interface: exports, classes, and methods. **Structural penalty**: higher nesting levels (max brace depth) increase the score.
 
 ### 4. 🪢 Entanglement (15%)
 
 Analyzes dependency chains.
 
 - Tracks direct and peer dependencies.
-- Heuristically estimates **Transitive Depth**.
-- Detects "Shell Leaks" (imports of `child_process`, `os/exec`, etc.) that suggest deep OS-level integration.
+- Heuristically estimates **transitive depth**.
+- Detects "shell leaks" (imports of `child_process`, etc.) that suggest deep OS-level integration.
 
 ### 5. 🧠 Logic Complexity (25%)
 
-A proxy for cognitive complexity.
-
-- **NPM**: Decision point density (if/else, switch, catch).
-- **Go**: Measures concurrency features (`goroutines`, `channels`, `defer`) alongside cyclomatic proxies.
-- **Confidence Modifier**: High test-file counts (coverage) slightly reduce this score, as well-tested code is easier to refactor/replace.
+A proxy for cognitive complexity: decision point density (if/else, switch, catch). **Confidence modifier**: high test-file counts slightly reduce this score, as well-tested code is easier to refactor or replace.
 
 ---
 
-## 🛠️ Supported Ecosystems
+## 🛠️ Supported ecosystem
 
-| Ecosystem         | Detected File  | Analysis Level                                                              |
+| Ecosystem         | Detected File  | Analysis level                                                              |
 | :---------------- | :------------- | :-------------------------------------------------------------------------- |
 | **NPM / Node.js** | `package.json` | Local `node_modules` scan first; optional tarball fetch + registry metadata |
-| **Go Modules**    | `go.mod`       | Proxy zip download + Source code parsing                                    |
+
+The project root must contain `package.json`.
 
 ---
 
-## 💻 CLI Usage
+## 💻 CLI usage
 
 The CLI is written in Go for speed, allowing it to parse thousands of files in milliseconds.
 
@@ -83,7 +76,7 @@ npx @vinean/dependency-analyzer --json
 
 ### NPM analysis (local install vs. registry)
 
-For JavaScript projects the CLI **prefers an existing install**: it reads each direct dependency from `node_modules` (including pnpm-style symlinks, which are resolved before scanning).
+The CLI **prefers an existing install**: it reads each direct dependency from `node_modules` (including pnpm-style symlinks, which are resolved before scanning).
 
 If a package is **not** on disk (no install, Yarn Plug’n’Play without `node_modules`, and so on), it can **fetch that package’s tarball from the npm registry**, extract it to a temporary directory, run the same code metrics, then delete the temp folder. Resolved versions come from, in order: `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` (classic), or an **exact** version string in `package.json` (ranges like `^1.0.0` are not enough without a lockfile).
 
@@ -105,7 +98,7 @@ npx @vinean/dependency-analyzer --no-ghost --no-registry
 
 ---
 
-## 📂 Project Structure
+## 📂 Project structure
 
 - `cli-go/`: Core analysis engine and HTML report generation (Go).
 - `packages/dependency-analyzer/`: Node.js wrapper and cross-platform binary build for the published npm package.

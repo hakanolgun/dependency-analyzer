@@ -1,7 +1,7 @@
 {
   "name": "@vinean/dependency-analyzer",
   "version": "1.0.1",
-  "description": "Dependency Analyzer for npm and go packages with replaceability analysis",
+  "description": "Dependency Analyzer for npm packages with replaceability analysis",
   "type": "module",
   "bin": {
     "dependency-analyzer": "bin/dependency-analyzer.js"
@@ -31,7 +31,6 @@
     "scanner",
     "replaceability",
     "npm",
-    "go",
     "cli",
     "scan"
   ],

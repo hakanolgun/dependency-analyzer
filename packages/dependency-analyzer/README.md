@@ -1,10 +1,10 @@
 # 🛡️ @vinean/dependency-analyzer
 
-A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of your project's dependencies. Supports both **NPM packages** and **Go Modules**.
+A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of **npm** dependencies in JavaScript and TypeScript projects.
 
 ## 🚀 Usage
 
-Run it directly via `npx` in your project root directory:
+Run it directly via `npx` in your project root directory (must contain `package.json`):
 
 ```bash
 npx @vinean/dependency-analyzer
@@ -20,11 +20,11 @@ npm install -g @vinean/dependency-analyzer
 ## ⚙️ Options
 
 - `--project <path>`: Path to the project root (default: current directory).
-- `--ecosystem <type>`: Force ecosystem detection (`npm` or `go`). Auto-detected by default.
+- `--ecosystem`: Optional; use `npm` or leave empty. The `go` value is no longer supported.
 - `--open=false`: Disable auto-opening the generated HTML report.
 - `--json`: Print the raw analysis summary (JSON) to stdout.
-- `--no-ghost` (**npm only**): Do not fetch package tarballs from the registry when `node_modules` is missing. Analysis uses only what is installed locally.
-- `--no-registry` (**npm only**): Skip npm registry metadata (weekly downloads, maintenance heuristics, React Native directory). Does not disable tarball fetch for code analysis; use `--no-ghost` for that.
+- `--no-ghost`: Do not fetch package tarballs from the registry when `node_modules` is missing. Analysis uses only what is installed locally.
+- `--no-registry`: Skip npm registry metadata (weekly downloads, maintenance heuristics, React Native directory). Does not disable tarball fetch for code analysis; use `--no-ghost` for that.
 
 ### NPM: local install first, registry fallback
 
@@ -38,9 +38,9 @@ npx @vinean/dependency-analyzer --no-ghost
 npx @vinean/dependency-analyzer --no-registry
 ```
 
-## 📊 Key Features
+## 📊 Key features
 
-### 1. Replaceability Cost (0-100)
+### 1. Replaceability cost (0-100)
 
 `@vinean/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
 
@@ -48,34 +48,27 @@ npx @vinean/dependency-analyzer --no-registry
 - **Medium (31-70)**: Moderate complexity and coupling.
 - **Hard (71-100)**: Deeply integrated, native code, or massive API surface.
 
-The score is derived from 5 critical metrics:
+The score is derived from five metrics: native presence, code volume, API surface, entanglement, and logic complexity.
 
-- **Native Presence**: Detects C++/CGO/Unsafe code.
-- **Code Volume**: Measures physical size and SLOC.
-- **API Surface**: Evaluates the breadth and complexity of the interface.
-- **Entanglement**: Tracks dependency chains and OS-level integrations.
-- **Logic Complexity**: Proxies cognitive load and concurrency features.
-
-### 2. Maintenance & Health
+### 2. Maintenance and health
 
 Identify abandoned or deprecated packages before they become a liability.
 
-- **Maintenance Status**: Track if a package is active (Yes), stale (Unlikely), or deprecated (No).
-- **Update Recency**: See exactly how long ago the last version was released.
-- **Popularity**: Weekly download counts (NPM) provide context on package trust.
+- **Maintenance status**: Track if a package is active (Yes), stale (Unlikely), or deprecated (No).
+- **Update recency**: See exactly how long ago the last version was released.
+- **Popularity**: Weekly download counts provide context on package trust.
 
-### 3. Ecosystem Specifics
+### 3. React Native
 
-- **React Native**: Detects native module usage and "New Architecture" (TurboModule/Fabric) support.
-- **Go Support**: Deep analysis of module internals and proxy metadata.
+Detects native module usage and "New Architecture" (TurboModule/Fabric) support when applicable.
 
-## 📑 Interactive Dashboard
+## 📑 Interactive dashboard
 
 The tool generates a `dependency-report.html` interactive dashboard in your project directory:
 
-- **Sortable Metrics**: Rank dependencies by complexity, downloads, or update age.
-- **Export Capabilities**: Download the full analysis as a JSON for CI/CD or internal tools.
-- **Offline First**: The report is self-contained and can be viewed without an internet connection.
+- **Sortable metrics**: Rank dependencies by complexity, downloads, or update age.
+- **Export capabilities**: Download the full analysis as JSON for CI/CD or internal tools.
+- **Offline first**: The report is self-contained and can be viewed without an internet connection.
 
 ---
 
