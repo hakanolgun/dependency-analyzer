@@ -2,7 +2,7 @@
 
 **Dependency-Analyzer** is a powerful dependency analysis tool designed to evaluate the "Replaceability" of your project's dependencies. It doesn't just list your packages; it deep-dives into their source code and metadata to calculate exactly how much effort would be required to replace them.
 
-Available as both a **high-performance Go CLI** and a **modern React Web Interface**.
+Ships as a **high-performance Go CLI**, with an optional **npm** wrapper for installation (`@vinean/dependency-analyzer`).
 
 ---
 
@@ -105,30 +105,10 @@ npx @vinean/dependency-analyzer --no-ghost --no-registry
 
 ---
 
-## 🖥️ Web Interface
-
-Dependency Analyzer includes a premium dashboard for exploring analysis results visually.
-
-- **Interactive Sorting**: Sort by download count, last update, or replaceability cost.
-- **Maintained Status**: Smart heuristics (`yes`, `unlikely`, `no`) based on recent update history.
-- **Ecosystem Switching**: Toggle between JavaScript and Go results.
-- **JSON Export**: Export the full analysis report for further processing.
-
-To run the dashboard locally:
-
-```bash
-npm install
-npm run dev
-```
-
----
-
 ## 📂 Project Structure
 
-- `cli-go/`: The core analysis engine implemented in Go.
-- `packages/dependency-analyzer/`: Node.js wrapper for the CLI distribution.
-- `src/`: React + Vite frontend source code.
-- `src/lib/`: Unified scoring logic (mirrors Go implementation for frontend-only scans).
+- `cli-go/`: Core analysis engine and HTML report generation (Go).
+- `packages/dependency-analyzer/`: Node.js wrapper and cross-platform binary build for the published npm package.
 
 ---
 
