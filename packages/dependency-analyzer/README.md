@@ -1,8 +1,8 @@
-# 🛡️ @hakanolgun/dependency-analyzer
+# @hakanolgun/dependency-analyzer
 
-A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of **npm** dependencies in JavaScript and TypeScript projects.
+A CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of **npm** dependencies in JavaScript and TypeScript projects.
 
-## 🚀 Usage
+## Usage
 
 Run it directly via `npx` in your project root directory (must contain `package.json`):
 
@@ -17,10 +17,9 @@ npm install -g @hakanolgun/dependency-analyzer
 @hakanolgun/dependency-analyzer --project ./my-cool-project
 ```
 
-## ⚙️ Options
+## Options
 
 - `--project <path>`: Path to the project root (default: current directory).
-- `--ecosystem`: Optional; use `npm` or leave empty. The `go` value is no longer supported.
 - `--open=false`: Disable auto-opening the generated HTML report.
 - `--json`: Print the raw analysis summary (JSON) to stdout.
 - `--no-ghost`: Do not fetch package tarballs from the registry when `node_modules` is missing. Analysis uses only what is installed locally.
@@ -30,19 +29,11 @@ npm install -g @hakanolgun/dependency-analyzer
 
 By default, dependencies are read from `node_modules` when present. If a direct dependency is missing on disk, the tool downloads its **exact** version from the registry (using `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, or a pinned version in `package.json`), analyzes the unpacked sources, and cleans up temp files per package.
 
-```bash
-# Air-gapped or CI: require a full local install
-npx @hakanolgun/dependency-analyzer --no-ghost
-
-# Skip registry metadata but still allow tarball fetch for missing packages
-npx @hakanolgun/dependency-analyzer --no-registry
-```
-
-## 📊 Key features
+## Key features
 
 ### 1. Replaceability cost (0-100)
 
-`@hakanolgun/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
+Analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
 
 - **Easy (0-30)**: Minimal logic, easy to replace or implement yourself.
 - **Medium (31-70)**: Moderate complexity and coupling.

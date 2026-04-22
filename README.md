@@ -1,8 +1,65 @@
-# 🛡️ Dependency Analyzer
+# @hakanolgun/dependency-analyzer
 
-**Dependency-Analyzer** is a powerful dependency analysis tool designed to evaluate the "Replaceability" of your project's dependencies. It doesn't just list your packages; it deep-dives into their source code and metadata to calculate exactly how much effort would be required to replace them.
+A CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of **npm** dependencies in JavaScript and TypeScript projects.
 
-Ships as a **high-performance Go CLI**, with an optional **npm** wrapper for installation (`@hakanolgun/dependency-analyzer`).
+## Usage
+
+Run it directly via `npx` in your project root directory (must contain `package.json`):
+
+```bash
+npx @hakanolgun/dependency-analyzer
+```
+
+Or install it globally:
+
+```bash
+npm install -g @hakanolgun/dependency-analyzer
+@hakanolgun/dependency-analyzer --project ./my-cool-project
+```
+
+## Options
+
+- `--project <path>`: Path to the project root (default: current directory).
+- `--open=false`: Disable auto-opening the generated HTML report.
+- `--json`: Print the raw analysis summary (JSON) to stdout.
+- `--no-ghost`: Do not fetch package tarballs from the registry when `node_modules` is missing. Analysis uses only what is installed locally.
+- `--no-registry`: Skip npm registry metadata (weekly downloads, maintenance heuristics, React Native directory). Does not disable tarball fetch for code analysis; use `--no-ghost` for that.
+
+### NPM: local install first, registry fallback
+
+By default, dependencies are read from `node_modules` when present. If a direct dependency is missing on disk, the tool downloads its **exact** version from the registry (using `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, or a pinned version in `package.json`), analyzes the unpacked sources, and cleans up temp files per package.
+
+## Key features
+
+### 1. Replaceability cost (0-100)
+
+Analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
+
+- **Easy (0-30)**: Minimal logic, easy to replace or implement yourself.
+- **Medium (31-70)**: Moderate complexity and coupling.
+- **Hard (71-100)**: Deeply integrated, native code, or massive API surface.
+
+The score is derived from five metrics: native presence, code volume, API surface, entanglement, and logic complexity.
+
+### 2. Maintenance and health
+
+Identify abandoned or deprecated packages before they become a liability.
+
+- **Maintenance status**: Track if a package is active (Yes), stale (Unlikely), or deprecated (No).
+- **Update recency**: See exactly how long ago the last version was released.
+- **Popularity**: Weekly download counts provide context on package trust.
+
+### 3. React Native
+
+Detects native module usage and "New Architecture" (TurboModule/Fabric) support when applicable.
+
+## 📑 Interactive dashboard
+
+The tool generates a `dependency-report.html` interactive dashboard in your project directory:
+
+- **Sortable metrics**: Rank dependencies by complexity, downloads, or update age.
+- **Export capabilities**: Download the full analysis as JSON for CI/CD or internal tools.
+- **Offline first**: The report is self-contained and can be viewed without an internet connection.
 
 ---
 
@@ -34,79 +91,6 @@ Analyzes dependency chains.
 
 A proxy for cognitive complexity: decision point density (if/else, switch, catch). **Confidence modifier**: high test-file counts slightly reduce this score, as well-tested code is easier to refactor or replace.
 
----
-
-## 🛠️ Supported ecosystem
-
-| Ecosystem         | Detected File  | Analysis level                                                              |
-| :---------------- | :------------- | :-------------------------------------------------------------------------- |
-| **NPM / Node.js** | `package.json` | Local `node_modules` scan first; optional tarball fetch + registry metadata |
-
-The project root must contain `package.json`.
-
----
-
-## 💻 CLI usage
-
-The CLI is written in Go for speed, allowing it to parse thousands of files in milliseconds.
-
-### Installation
-
-```bash
-# Using npm
-npx @hakanolgun/dependency-analyzer
-
-# Or build from source
-cd cli-go
-go build -o dependency-analyzer ./cmd/dependency-analyzer
-```
-
-### Commands
-
-```bash
-# Scan current directory and open report
-npx @hakanolgun/dependency-analyzer
-
-# Scan specific project without opening browser
-npx @hakanolgun/dependency-analyzer --project ./my-cool-app --open=false
-
-# Output raw JSON summary to stdout
-npx @hakanolgun/dependency-analyzer --json
-```
-
-### NPM analysis (local install vs. registry)
-
-The CLI **prefers an existing install**: it reads each direct dependency from `node_modules` (including pnpm-style symlinks, which are resolved before scanning).
-
-If a package is **not** on disk (no install, Yarn Plug’n’Play without `node_modules`, and so on), it can **fetch that package’s tarball from the npm registry**, extract it to a temporary directory, run the same code metrics, then delete the temp folder. Resolved versions come from, in order: `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock` (classic), or an **exact** version string in `package.json` (ranges like `^1.0.0` are not enough without a lockfile).
-
-| Flag            | Effect                                                                                                                                                                                        |
-| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--no-ghost`    | Do not download tarballs; only analyze what is present under `node_modules`. Useful for air-gapped CI or strict “no fetch” policies.                                                          |
-| `--no-registry` | Skip npm registry **metadata** (downloads, maintenance hints, React Native directory, etc.). Code analysis still runs; ghost tarball fetch still runs when needed unless `--no-ghost` is set. |
-
-```bash
-# Fail if dependencies are not installed (no network tarball fetch)
-npx @hakanolgun/dependency-analyzer --no-ghost
-
-# Analyze from disk / tarballs only; no registry API calls
-npx @hakanolgun/dependency-analyzer --no-registry
-
-# Combine both: strictly local node_modules, no registry calls
-npx @hakanolgun/dependency-analyzer --no-ghost --no-registry
-```
-
----
-
-## 📂 Project structure
-
-- `cli-go/`: Core analysis engine and HTML report generation (Go).
-- `packages/dependency-analyzer/`: Node.js wrapper and cross-platform binary build for the published npm package.
-
----
-
 ## 📜 License
 
 Distributed under the GNU AFFERO GENERAL PUBLIC LICENSE v3.0. See `LICENSE.md` for more information.
-
----
