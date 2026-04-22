@@ -48,10 +48,9 @@ type htmlData struct {
 }
 
 type htmlRow struct {
-	Name        string
-	RepoURL     string
-	PackageErr  string
-	CurrVersion string
+	Name       string
+	RepoURL    string
+	PackageErr string
 
 	LatestVersion string
 	HasLatest     bool
@@ -102,10 +101,9 @@ func buildHTMLData(r *engine.ProjectReport) (htmlData, error) {
 
 func htmlRowFrom(dep engine.DependencyResult, hasRNRoot bool) htmlRow {
 	row := htmlRow{
-		Name:        dep.Name,
-		RepoURL:     dep.RepoURL,
-		PackageErr:  dep.Error,
-		CurrVersion: stripRange(dep.Version),
+		Name:       dep.Name,
+		RepoURL:    dep.RepoURL,
+		PackageErr: dep.Error,
 	}
 
 	if dep.LatestVersion != "" {
@@ -158,13 +156,6 @@ func newArchCell(dep engine.DependencyResult) string {
 		return "ok"
 	}
 	return "no"
-}
-
-func stripRange(v string) string {
-	v = strings.TrimSpace(v)
-	v = strings.TrimPrefix(v, "^")
-	v = strings.TrimPrefix(v, "~")
-	return v
 }
 
 func formatDownloadCount(p *int) string {

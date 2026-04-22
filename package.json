@@ -1,7 +1,7 @@
 {
   "name": "dependency-analyzer",
   "private": true,
-  "version": "0.0.1",
+  "version": "1.1.0",
   "type": "module",
   "homepage": "https://github.com/hakanolgun/dependency-analyzer",
   "license": "GPL-3.0-or-later",
@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-    "cli:build": "npm --workspace @vinean/dependency-analyzer run build:binaries",
+    "cli:build": "npm --workspace @hakanolgun/dependency-analyzer run build:binaries",
     "cli:run": "node ./packages/dependency-analyzer/bin/dependency-analyzer.js",
     "cli:test": "cd cli-go && go test ./...",
     "release": "cd packages/dependency-analyzer && npm publish && cd ../.."

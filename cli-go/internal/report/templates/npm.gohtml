@@ -51,7 +51,6 @@
                   New Arch Support <span class="sort-icon" data-for="newArchitecture"></span>
                 </th>
                 {{ end }}
-                <th>Your Version</th>
                 <th>Latest Version</th>
               </tr>
             </thead>
@@ -105,7 +104,6 @@
                   {{ if eq .NewArchCell "ok" }}<span class="na-yes">Yes</span>{{ else if eq .NewArchCell "no" }}<span class="na-no">No</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>
                 {{ end }}
-                <td><span class="badge gray">{{ .CurrVersion }}</span></td>
                 <td>
                   {{ if .HasLatest }}<span class="badge info">{{ .LatestVersion }}</span>{{ else }}<span class="muted">-</span>{{ end }}
                 </td>

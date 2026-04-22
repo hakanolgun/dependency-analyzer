@@ -1,6 +1,6 @@
 {
-  "name": "@vinean/dependency-analyzer",
-  "version": "1.0.1",
+  "name": "@hakanolgun/dependency-analyzer",
+  "version": "1.1.0",
   "description": "Dependency Analyzer for npm packages with replaceability analysis",
   "type": "module",
   "bin": {
@@ -37,5 +37,8 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "GPL-3.0-or-later"
+  "license": "GPL-3.0-or-later",
+  "publishConfig": {
+    "access": "public"
+  }
 }

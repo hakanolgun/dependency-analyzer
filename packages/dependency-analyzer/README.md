@@ -1,4 +1,4 @@
-# 🛡️ @vinean/dependency-analyzer
+# 🛡️ @hakanolgun/dependency-analyzer
 
 A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, and **Health** of **npm** dependencies in JavaScript and TypeScript projects.
 
@@ -7,14 +7,14 @@ A high-performance CLI for analyzing the **Replaceability**, **Maintenance**, an
 Run it directly via `npx` in your project root directory (must contain `package.json`):
 
 ```bash
-npx @vinean/dependency-analyzer
+npx @hakanolgun/dependency-analyzer
 ```
 
 Or install it globally:
 
 ```bash
-npm install -g @vinean/dependency-analyzer
-@vinean/dependency-analyzer --project ./my-cool-project
+npm install -g @hakanolgun/dependency-analyzer
+@hakanolgun/dependency-analyzer --project ./my-cool-project
 ```
 
 ## ⚙️ Options
@@ -32,17 +32,17 @@ By default, dependencies are read from `node_modules` when present. If a direct 
 
 ```bash
 # Air-gapped or CI: require a full local install
-npx @vinean/dependency-analyzer --no-ghost
+npx @hakanolgun/dependency-analyzer --no-ghost
 
 # Skip registry metadata but still allow tarball fetch for missing packages
-npx @vinean/dependency-analyzer --no-registry
+npx @hakanolgun/dependency-analyzer --no-registry
 ```
 
 ## 📊 Key features
 
 ### 1. Replaceability cost (0-100)
 
-`@vinean/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
+`@hakanolgun/dependency-analyzer` analyzes your codebase to estimate how difficult it would be to remove a dependency and replace it with your own implementation.
 
 - **Easy (0-30)**: Minimal logic, easy to replace or implement yourself.
 - **Medium (31-70)**: Moderate complexity and coupling.

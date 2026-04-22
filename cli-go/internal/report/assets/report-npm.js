@@ -132,7 +132,6 @@
         '<td>' + maintainedBadge(dep.isMaintained) + '</td>' +
         '<td class="cell-replace">' + replaceabilityCell(dep) + '</td>' +
         rnCell +
-        '<td><span class="badge gray">' + escapeHTML(dep.version.replace(/[\^~]/,'')) + '</span></td>' +
         '<td>' + latestCell + '</td>' +
         '</tr>';
     });

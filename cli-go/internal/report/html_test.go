@@ -48,7 +48,6 @@ func TestGenerateHTML(t *testing.T) {
 		`class="glass-panel"`,
 		`class="table-container"`,
 		"Package Name",
-		"Your Version",
 		"Latest Version",
 		"Weekly Downloads",
 		"Last Update",

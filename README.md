@@ -2,7 +2,7 @@
 
 **Dependency-Analyzer** is a powerful dependency analysis tool designed to evaluate the "Replaceability" of your project's dependencies. It doesn't just list your packages; it deep-dives into their source code and metadata to calculate exactly how much effort would be required to replace them.
 
-Ships as a **high-performance Go CLI**, with an optional **npm** wrapper for installation (`@vinean/dependency-analyzer`).
+Ships as a **high-performance Go CLI**, with an optional **npm** wrapper for installation (`@hakanolgun/dependency-analyzer`).
 
 ---
 
@@ -54,7 +54,7 @@ The CLI is written in Go for speed, allowing it to parse thousands of files in m
 
 ```bash
 # Using npm
-npx @vinean/dependency-analyzer
+npx @hakanolgun/dependency-analyzer
 
 # Or build from source
 cd cli-go
@@ -65,13 +65,13 @@ go build -o dependency-analyzer ./cmd/dependency-analyzer
 
 ```bash
 # Scan current directory and open report
-npx @vinean/dependency-analyzer
+npx @hakanolgun/dependency-analyzer
 
 # Scan specific project without opening browser
-npx @vinean/dependency-analyzer --project ./my-cool-app --open=false
+npx @hakanolgun/dependency-analyzer --project ./my-cool-app --open=false
 
 # Output raw JSON summary to stdout
-npx @vinean/dependency-analyzer --json
+npx @hakanolgun/dependency-analyzer --json
 ```
 
 ### NPM analysis (local install vs. registry)
@@ -87,13 +87,13 @@ If a package is **not** on disk (no install, Yarn Plug’n’Play without `node_
 
 ```bash
 # Fail if dependencies are not installed (no network tarball fetch)
-npx @vinean/dependency-analyzer --no-ghost
+npx @hakanolgun/dependency-analyzer --no-ghost
 
 # Analyze from disk / tarballs only; no registry API calls
-npx @vinean/dependency-analyzer --no-registry
+npx @hakanolgun/dependency-analyzer --no-registry
 
 # Combine both: strictly local node_modules, no registry calls
-npx @vinean/dependency-analyzer --no-ghost --no-registry
+npx @hakanolgun/dependency-analyzer --no-ghost --no-registry
 ```
 
 ---
