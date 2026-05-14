@@ -21,6 +21,7 @@ func main() {
 		ecosystem   = flag.String("ecosystem", "", "must be npm or empty (Go module analysis was removed)")
 		noGhost     = flag.Bool("no-ghost", false, "do not fetch package tarballs when node_modules is missing")
 		noRegistry  = flag.Bool("no-registry", false, "skip npm registry metadata (downloads, maintenance, etc.)")
+		includeDev  = flag.Bool("dev", false, "include devDependencies in the scan")
 	)
 	flag.Parse()
 
@@ -49,7 +50,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	runNpm(absProject, *openReport, *jsonOut, *noGhost, *noRegistry)
+	runNpm(absProject, *openReport, *jsonOut, *noGhost, *noRegistry, *includeDev)
 }
 
 func validateEcosystem(override string) error {
@@ -70,11 +71,14 @@ func fileExists(path string) bool {
 	return err == nil && !info.IsDir()
 }
 
-func runNpm(absProject string, openReport, jsonOut, noGhost, noRegistry bool) {
+func runNpm(absProject string, openReport, jsonOut, noGhost, noRegistry, includeDev bool) {
 	cliui.Step("Reading package.json and resolving dependencies...")
 	opts := npm.DefaultAnalyzeOptions()
 	if noGhost {
 		opts.AllowGhost = false
+	}
+	if includeDev {
+		opts.IncludeDevDependencies = true
 	}
 	var reg *npm.Client
 	if !noRegistry {

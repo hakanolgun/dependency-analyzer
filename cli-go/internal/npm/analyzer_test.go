@@ -69,7 +69,43 @@ func TestAnalyzeProjectBasic(t *testing.T) {
 	}
 }
 
-func TestMergeDevDependencies(t *testing.T) {
+func TestDefaultSkipsDevDependencies(t *testing.T) {
+	root := t.TempDir()
+	rootPkg := `{
+  "name": "fixture",
+  "dependencies": { "a": "1.0.0" },
+  "devDependencies": { "b": "2.0.0" }
+}`
+	if err := os.WriteFile(filepath.Join(root, "package.json"), []byte(rootPkg), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"a", "b"} {
+		depDir := filepath.Join(root, "node_modules", name)
+		if err := os.MkdirAll(depDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		mini := `{"name": "` + name + `", "version": "1.0.0", "dependencies": {}, "peerDependencies": {}}`
+		if err := os.WriteFile(filepath.Join(depDir, "package.json"), []byte(mini), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(depDir, "index.js"), []byte("export const x = 1;\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Default behavior: only dependencies are scanned, devDependencies are excluded.
+	report, err := AnalyzeProjectWithRegistry(root, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(report.Dependencies) != 1 {
+		t.Fatalf("want 1 dep (only prod), got %d", len(report.Dependencies))
+	}
+	if report.Dependencies[0].Name != "a" {
+		t.Fatalf("expected dep 'a', got %q", report.Dependencies[0].Name)
+	}
+}
+
+func TestIncludeDevDependencies(t *testing.T) {
 	root := t.TempDir()
 	rootPkg := `{
   "name": "fixture",
@@ -92,14 +128,16 @@ func TestMergeDevDependencies(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	report, err := AnalyzeProjectWithRegistry(root, nil)
+	// With --dev flag: both dependencies and devDependencies are scanned.
+	opts := AnalyzeOptions{AllowGhost: true, IncludeDevDependencies: true}
+	report, err := AnalyzeProjectWithRegistryOpts(root, nil, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(report.Dependencies) != 2 {
 		t.Fatalf("want 2 merged deps, got %d", len(report.Dependencies))
 	}
-	// Alphabetical order: a before b; devDependencies overwrote a.
+	// Alphabetical order: a before b; devDependencies overwrote a's version.
 	var foundA, foundB bool
 	for _, d := range report.Dependencies {
 		if d.Name == "a" && d.Version == "1.1.0" {

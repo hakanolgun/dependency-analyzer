@@ -50,6 +50,8 @@ type depPackageJSON struct {
 type AnalyzeOptions struct {
 	// AllowGhost fetches package tarballs from the registry when node_modules is missing (requires network).
 	AllowGhost bool
+	// IncludeDevDependencies includes devDependencies in the scan (default: false, only dependencies are scanned).
+	IncludeDevDependencies bool
 }
 
 // DefaultAnalyzeOptions returns options used by AnalyzeProject and AnalyzeProjectWithRegistry.
@@ -80,9 +82,12 @@ func AnalyzeProjectWithRegistryOpts(projectPath string, reg *Client, opts Analyz
 		return nil, errors.New("failed to parse root package.json")
 	}
 
-	merged := mergeDeps(&root)
+	merged := mergeDeps(&root, opts.IncludeDevDependencies)
 	if len(merged) == 0 {
-		return nil, errors.New("no dependencies or devDependencies in package.json")
+		if opts.IncludeDevDependencies {
+			return nil, errors.New("no dependencies or devDependencies in package.json")
+		}
+		return nil, errors.New("no dependencies in package.json")
 	}
 
 	names := sortedKeys(merged)
@@ -145,14 +150,14 @@ func AnalyzeProjectWithRegistryOpts(projectPath string, reg *Client, opts Analyz
 	return report, nil
 }
 
-func mergeDeps(root *rootPackageJSON) map[string]string {
+func mergeDeps(root *rootPackageJSON, includeDevDeps bool) map[string]string {
 	merged := make(map[string]string)
 	if root.Dependencies != nil {
 		for k, v := range root.Dependencies {
 			merged[k] = v
 		}
 	}
-	if root.DevDependencies != nil {
+	if includeDevDeps && root.DevDependencies != nil {
 		for k, v := range root.DevDependencies {
 			merged[k] = v
 		}
